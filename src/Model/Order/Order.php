@@ -20,28 +20,26 @@ class Order extends Model
 {
     use SoftDelete;
 
-    protected $connection = 'brand';
-    //物流
-    const LOGISTICS = 1;
-    //自提
-    const Distribution = 2;
+    protected $connection = 'order';
+
+    protected $autoWriteTimestamp = true;
 
     /**
-     * 订单商品列表
+     * 订单详情列表
      * @return HasMany
      */
-    public function product(): HasMany
+    public function detail(): HasMany
     {
-        return $this->hasMany('OrderProduct');
+        return $this->hasMany('OrderDetail');
     }
 
     /**
-     * 关联订单收货地址表
-     * @return HasOne
+     * 秒杀订单详情列表
+     * @return HasMany
      */
-    public function address(): HasOne
+    public function detailSekill(): HasMany
     {
-        return $this->hasOne("OrderAddress");
+        return $this->hasMany('OrderDetailSekill');
     }
 
     /**

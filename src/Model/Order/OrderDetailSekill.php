@@ -6,17 +6,19 @@ namespace YddOrder\Model\Order;
 
 use think\Model;
 use think\model\concern\SoftDelete;
+use think\model\relation\BelongsTo;
 
 /**
- * 自提收货人信息model
- * Class OrderExtract
- * @package app\model\order\order
+ * 秒杀订单商品model
+ * Class OrderDetailSekill
+ * @package YddOrder\Model\Order
  */
-class OrderExtract extends Model
+class OrderDetailSekill extends Model
 {
     use SoftDelete;
 
     protected $connection = 'order';
 
     protected $autoWriteTimestamp = true;
+
 }

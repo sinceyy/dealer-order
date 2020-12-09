@@ -10,9 +10,53 @@ use YddOrder\Model\Order\Order;
 use Closure;
 use think\db\exception\DbException;
 use think\Exception;
+use YddOrder\OrderField\OrderFieldConstant;
 
 class OrderRepository
 {
+    //定义筛选条件字段
+    private static $conditions = [
+        'order_no', //订单号
+        'user_id',  //用户id
+        'order_source',//订单来源
+        'source_id',//来源id
+        'brand_id',//品牌商id
+        'clerk_id',//用户绑定的员工id
+        'writeoff_id',//核销人id
+        'pay_status',//支付状态
+        'pay_type',//支付类型
+        'delivery_type',//配送方式
+        'order_type',//订单类型
+        'is_settled',//结算状态
+        'order_status'//订单状态
+    ];
+
+    /**
+     * 订单筛选条件组装
+     * all 全部订单 (不包含未支付订单)
+     * pay 待付款
+     * delivery 待发货（已支付，无发货时间，无退款）
+     * receipt 待收货（已支付，已发货，无退款）
+     * complete 已完成（已支付，有发货时间，不包含退款，不包含未结算））
+     * refund 退款中（已支付，无发货时间 （仅可发货前退款））
+     * refund_success 退款成功（已支付，退款时间不为空，无发货时间 （仅可发货前退款））
+     * comment 待评价（已支付，未评价，（包含退款，包含未结算））
+     * settled 未结算(已支付，已发货，未结算，待收货)
+     * settled_success 已结算（已支付，已发货，待评价，已完成）
+     */
+    protected static $orderStatus = [
+        'all'             => ['order_status' => ['>', 0]],
+        'pay'             => ['pay_status' => OrderFieldConstant::PAY_SUCCESS],
+        'delivery'        => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::DELIVERY, 'deliver_time' => 0, 'refund_time' => 0],
+        'receipt'         => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::RECEIPT, 'deliver_time' => ['>', 0], 'refund_time' => 0],
+        'complete'        => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::COMMENT, 'deliver_time' => ['>', 0], 'refund_time' => 0],
+        'refund'          => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::REFUND, 'deliver_time' => 0],
+        'refund_success'  => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::REFUND_SUCCESS, 'refund_time' => ['>', 0], 'deliver_time' => 0],
+        'comment'         => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::COMMENT],
+        'settled'         => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => ['in', [OrderFieldConstant::RECEIPT, OrderFieldConstant::REFUND]], 'deliver_time' => ['>', 0], 'is_settled' => OrderFieldConstant::SETTLED],
+        'settled_success' => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => ['in', [OrderFieldConstant::COMMENT, OrderFieldConstant::COMPLETE]], 'deliver_time' => ['>', 0], 'is_settled' => OrderFieldConstant::SETTLED_SUCCESS]
+    ];
+
 
     /**
      * 获取订单列表
@@ -24,7 +68,7 @@ class OrderRepository
     {
         // 订单列表
         try {
-            $list = (new Order)->with(['product', 'address', 'user', 'extract'])
+            $list = (new Order)->with(['detail', 'user', 'extract'])
                 ->where(self::setCondition($condition))
                 ->where(self::transferDataType($condition['datatype']))
                 ->order('create_time desc')
@@ -74,33 +118,32 @@ class OrderRepository
     private static function setCondition(array $condition): Closure
     {
         return function ($query) use ($condition) {
+
             if ($condition['keyword'] != '') {
-                $whereStr = 'order_no|user_id|address.phone|address.name|product.product_name|express_no|user.member_name|transaction_id';
+                $whereStr = 'order_no|user_id|extract.extract_name|extract.extract_phone|extract.phone|extract.name';
                 $query->whereLike($whereStr, $condition['keyword'] . '%');
             }
-            if ($condition['start_time'] != '') {
+
+            //根据订单创建时间
+            if (isset($condition['start_time']) && isset($condition['end_time'])) {
                 $query->where(['create_time', '>=', strtotime($condition['start_time'])]);
-            }
-            if ($condition['end_time'] != '') {
                 $query->where(['create_time', '<=', strtotime($condition['end_time']) + 86400]);
             }
-            if (isset($condition['store_name'])) {
-                $query->where(['store_name', '=', $condition['store_name']]);
+
+            //根据订单来源筛选
+            if (isset($condition['order_source']) && isset($condition['source_id'])) {
+                $query->whereIn(['order_source', (int)$condition['order_source'], 'source_id' => (int)$condition['source_id']]);
             }
-            if (isset($condition['store_type'])) {
-                $query->where(['store_type', '=', (int)$condition['store_type']]);
-            }
-            if (isset($condition['dealer_id'])) {
-                $query->where(['dealer_id', '=', (int)$condition['dealer_id']]);
-            }
-            if (isset($condition['delivery_type'])) {
-                $query->where(['delivery_type', '=', (int)$condition['delivery_type']]);
-            }
-            if (isset($condition['user_clerkid'])) {
-                $query->where(['user_clerkid', '=', (int)$condition['user_clerkid']]);
-            }
-            if (isset($condition['store_id']) && is_array($condition['store_id'])) {
-                $query->whereIn(['store_id', $condition['store_id']]);
+
+            foreach ($condition as $k => $v) {
+                //过滤time/source/keyword类型
+                if (strpos($k, 'time') || strpos($k, 'source') || strpos($k, 'keyword')) {
+                    unset($condition[$k]);
+                    continue;
+                }
+                if (in_array($k, self::$conditions)) {
+                    $query->where($k, '=', $v);
+                }
             }
         };
     }
@@ -112,83 +155,6 @@ class OrderRepository
      */
     private static function transferDataType($dataType): array
     {
-        // 数据类型
-        switch ($dataType){
-            case "all":
-                //全部订单
-                $filter = [];
-                break;
-            case "pay":
-                //待付款
-                $filter = ['pay_status' => 0, 'order_status' => 0];
-                break;
-            case "delivery":
-                //待发货
-                $filter = [
-                    'pay_status'      => 1,
-                    'delivery_status' => 0,
-                    'order_status'    => ['in', [1, 21]]
-                ];
-                break;
-            case "receipt":
-                //待收货
-                $filter = [
-                    'pay_status'      => 1,
-                    'delivery_status' => 1,
-                    'receipt_status'  => 0
-                ];
-                break;
-            case "complete":
-                //已完成
-                $filter = ['order_status' => 3];
-                break;
-            case "refund":
-                //退款中
-                $filter = ['order_status' => 5];
-                break;
-            case "refund_success":
-                //退款成功
-                $filter = ['order_status' => 4];
-                break;
-            case "comment":
-                //待评价
-                $filter = ['is_comment' => 0, 'order_status' => 3];
-                break;
-            case "settled":
-                //未结算
-                $filter = ['is_settled' => 0, 'order_status' => 3];
-                break;
-            case "settled_success":
-                $filter = ['is_settled' => 1, 'order_status' => 3];
-                break;
-            default:
-                $filter = [];
-                break;
-        }
-
-        return $filter;
-
-        //php 8 新特性写法
-//        $filter = match ($dataType) {
-//            'all' => [],
-//            'pay' => ['pay_status' => 0, 'order_status' => 0],
-//            'delivery' => [
-//                'pay_status'      => 1,
-//                'delivery_status' => 0,
-//                'order_status'    => ['in', [1, 21]]
-//            ],
-//            'receipt' => [
-//                'pay_status'      => 1,
-//                'delivery_status' => 1,
-//                'receipt_status'  => 0
-//            ],
-//            'complete' => ['order_status' => 3],
-//            'refund' => ['order_status' => 5],
-//            'refund_success' => ['order_status' => 4],
-//            'comment' => ['is_comment' => 0, 'order_status' => 3],
-//            'settled' => ['is_settled' => 0, 'order_status' => 3],
-//            'settled_success' => ['is_settled' => 1, 'order_status' => 3],
-//        };
-
+        return self::$orderStatus[$dataType];
     }
 }

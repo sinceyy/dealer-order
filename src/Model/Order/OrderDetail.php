@@ -2,21 +2,22 @@
 
 declare(strict_types=1);
 
-namespace YddOrder\Model\Member;
+namespace YddOrder\Model\Order;
 
 use think\Model;
 use think\model\concern\SoftDelete;
+use think\model\relation\BelongsTo;
 
 /**
- * 订单model
- * Class Order
+ * 订单商品model
+ * Class OrderDetail
  * @package YddOrder\Model\Order
  */
-class Member extends Model
+class OrderDetail extends Model
 {
     use SoftDelete;
 
-    protected $connection = 'brand';
+    protected $connection = 'order';
 
     protected $autoWriteTimestamp = true;
 }
