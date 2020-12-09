@@ -49,7 +49,7 @@ class OrderService
 
     /**
      * 物流订单发货
-     * @param array $params    [express_id,express_no,order_id,brand_id]
+     * @param array $params    [express_id,express_no,express_company,order_id,brand_id]
      * @param array $condition [order_id,brand_id]
      * @return array
      * @throws DataNotFoundException

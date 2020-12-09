@@ -12,7 +12,7 @@ use think\db\exception\DbException;
 use think\Exception;
 use YddOrder\OrderField\OrderFieldConstant;
 
-class OrderRepository
+final class OrderRepository
 {
     //定义筛选条件字段
     private static $conditions = [

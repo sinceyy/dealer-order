@@ -7,7 +7,7 @@ namespace YddOrder\Repository\Order;
 use think\Exception\InvalidArgumentException;
 use YddOrder\Model\Order\OrderExtract;
 
-class OrderExpressRespository
+final class OrderExpressRespository
 {
 
     /**
