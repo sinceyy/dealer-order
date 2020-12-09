@@ -24,7 +24,7 @@ class OrderRepository
     {
         // 订单列表
         try {
-            $list = Order::with(['product', 'address', 'user', 'extract'])
+            $list = (new Order)->with(['product', 'address', 'user', 'extract'])
                 ->where(self::setCondition($condition))
                 ->where(self::transferDataType($condition['datatype']))
                 ->order('create_time desc')
@@ -51,7 +51,7 @@ class OrderRepository
      * @throws DataNotFoundException
      * @throws ModelNotFoundException
      */
-    public static function getOrderInfo(array $condition): array|Model|null
+    public static function getOrderInfo(array $condition)
     {
         return Order::with(['product', 'address', 'extract'])->where(self::setCondition($condition))->find();
     }
@@ -62,7 +62,7 @@ class OrderRepository
      * @param array $condition
      * @return bool|Order
      */
-    public static function orderUpdate(array $param, array $condition = []): bool|Order
+    public static function orderUpdate(array $param, array $condition = [])
     {
         return (new Order)->where($condition)->save($condition);
     }
@@ -113,27 +113,82 @@ class OrderRepository
     private static function transferDataType($dataType): array
     {
         // 数据类型
-        $filter = [];
-        $filter = match ($dataType) {
-            'all' => [],
-            'pay' => ['pay_status' => 0, 'order_status' => 0],
-            'delivery' => [
-                'pay_status'      => 1,
-                'delivery_status' => 0,
-                'order_status'    => ['in', [1, 21]]
-            ],
-            'receipt' => [
-                'pay_status'      => 1,
-                'delivery_status' => 1,
-                'receipt_status'  => 0
-            ],
-            'complete' => ['order_status' => 3],
-            'refund' => ['order_status' => 5],
-            'refund_success' => ['order_status' => 4],
-            'comment' => ['is_comment' => 0, 'order_status' => 3],
-            'settled' => ['is_settled' => 0, 'order_status' => 3],
-            'settled_success' => ['is_settled' => 1, 'order_status' => 3],
-        };
+        switch ($dataType){
+            case "all":
+                //全部订单
+                $filter = [];
+                break;
+            case "pay":
+                //待付款
+                $filter = ['pay_status' => 0, 'order_status' => 0];
+                break;
+            case "delivery":
+                //待发货
+                $filter = [
+                    'pay_status'      => 1,
+                    'delivery_status' => 0,
+                    'order_status'    => ['in', [1, 21]]
+                ];
+                break;
+            case "receipt":
+                //待收货
+                $filter = [
+                    'pay_status'      => 1,
+                    'delivery_status' => 1,
+                    'receipt_status'  => 0
+                ];
+                break;
+            case "complete":
+                //已完成
+                $filter = ['order_status' => 3];
+                break;
+            case "refund":
+                //退款中
+                $filter = ['order_status' => 5];
+                break;
+            case "refund_success":
+                //退款成功
+                $filter = ['order_status' => 4];
+                break;
+            case "comment":
+                //待评价
+                $filter = ['is_comment' => 0, 'order_status' => 3];
+                break;
+            case "settled":
+                //未结算
+                $filter = ['is_settled' => 0, 'order_status' => 3];
+                break;
+            case "settled_success":
+                $filter = ['is_settled' => 1, 'order_status' => 3];
+                break;
+            default:
+                $filter = [];
+                break;
+        }
+
         return $filter;
+
+        //php 8 新特性写法
+//        $filter = match ($dataType) {
+//            'all' => [],
+//            'pay' => ['pay_status' => 0, 'order_status' => 0],
+//            'delivery' => [
+//                'pay_status'      => 1,
+//                'delivery_status' => 0,
+//                'order_status'    => ['in', [1, 21]]
+//            ],
+//            'receipt' => [
+//                'pay_status'      => 1,
+//                'delivery_status' => 1,
+//                'receipt_status'  => 0
+//            ],
+//            'complete' => ['order_status' => 3],
+//            'refund' => ['order_status' => 5],
+//            'refund_success' => ['order_status' => 4],
+//            'comment' => ['is_comment' => 0, 'order_status' => 3],
+//            'settled' => ['is_settled' => 0, 'order_status' => 3],
+//            'settled_success' => ['is_settled' => 1, 'order_status' => 3],
+//        };
+
     }
 }

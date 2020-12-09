@@ -21,6 +21,10 @@ class Order extends Model
     use SoftDelete;
 
     protected $connection = 'brand';
+    //物流
+    const LOGISTICS = 1;
+    //自提
+    const Distribution = 2;
 
     /**
      * 订单商品列表
