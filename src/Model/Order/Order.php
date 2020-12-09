@@ -20,6 +20,8 @@ class Order extends Model
 {
     use SoftDelete;
 
+    protected $connection = 'brand';
+
     /**
      * 订单商品列表
      * @return HasMany

@@ -15,4 +15,6 @@ use think\model\concern\SoftDelete;
 class OrderRefundImage extends Model
 {
     use SoftDelete;
+
+    protected $connection = 'brand';
 }

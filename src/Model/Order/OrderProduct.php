@@ -17,6 +17,8 @@ class OrderProduct extends Model
 {
     use SoftDelete;
 
+    protected $connection = 'brand';
+
     /**
      * 订单商品图片列表
      * @return BelongsTo

@@ -19,6 +19,8 @@ class OrderRefund extends Model
 {
     use SoftDelete;
 
+    protected $connection = 'brand';
+
     /**
      * 关联用户表
      * @return BelongsTo

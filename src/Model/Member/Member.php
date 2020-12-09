@@ -15,4 +15,6 @@ use think\model\concern\SoftDelete;
 class Member extends Model
 {
     use SoftDelete;
+
+    protected $connection = 'brand';
 }
