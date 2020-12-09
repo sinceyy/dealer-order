@@ -1,7 +1,7 @@
 {
   "name": "yddorder/order-service",
   "description": "this is system public file upload drive",
-  "license": "Apache-2.0",
+  "license": "Yiwuyima",
   "authors": [
     {
       "name": "yangyang",
@@ -16,7 +16,7 @@
   "repositories": {
     "packagist": {
       "type": "composer",
-      "url": "https://packagist.phpcomposer.com"
+      "url": "https://mirrors.aliyun.com/composer"
     }
   },
   "autoload": {
