@@ -33,7 +33,6 @@ class OrderService
         return OrderRepository::getOrderList($condition);
     }
 
-
     /**
      * 订单详情
      * @param array $condition
@@ -73,9 +72,9 @@ class OrderService
             throw new \InvalidArgumentException("物流公司不存在!");
         }
 
-        Db::startTrans();
-
         try {
+            Db::startTrans();
+
             //更改订单状态
             $result = OrderRepository::orderUpdate([
                 'delivery_time' => time(),
@@ -87,7 +86,7 @@ class OrderService
                 'express_id'      => (int)$params['express_id'],
                 'express_no'      => $params['express_no'],
                 'express_company' => $express->name
-            ], ['order_id' => (int)$data->order_id, 'user_id' => (int)$data->user_id]);
+            ], ['order_id' => (int)$data->id, 'user_id' => (int)$data->user_id]);
 
             if (!$result || !$extract) {
                 throw new Exception('发货失败！');
@@ -97,7 +96,6 @@ class OrderService
             Db::rollback();
             throw new InvalidArgumentException($exception->getMessage());
         }
-
         return true;
     }
 
