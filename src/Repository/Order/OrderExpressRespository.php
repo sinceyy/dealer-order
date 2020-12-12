@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace YddOrder\Repository\Order;
 
 
+use think\Exception;
 use think\Exception\InvalidArgumentException;
 use YddOrder\Model\Order\OrderExtract;
 
@@ -26,7 +27,7 @@ final class OrderExpressRespository
             $express->express_no = $data['express_no'];
             $up = $express->save();
         } else {
-            throw new InvalidArgumentException('该订单不是物流订单无法发货');
+            throw new Exception('该订单不是物流订单无法发货');
         }
 
         return $up === false ? false : true;
