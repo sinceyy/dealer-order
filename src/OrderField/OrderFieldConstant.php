@@ -33,4 +33,13 @@ class OrderFieldConstant
     //退货退款（暂无退款）
     //已退款
     const REFUND_SUCCESS = 7;
+    //经销商类型
+    const ORDER_SOURCE_DEALER = 1;
+    //门店类型
+    const ORDER_SOURCE_STORE = 2;
+    //物流配送
+    const LOGISTICS = 1;
+    //门店自提
+    const RAISING = 2;
+
 }
