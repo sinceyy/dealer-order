@@ -94,10 +94,12 @@ final class OrderRepository
     {
         // 订单列表
         try {
-            $list = (new Order)->with(['detail', 'user', 'extract'])
+            $list = Order::alias('o')
+                ->with(['detail', 'user'])
+                ->join('order_extract oe', 'o.id = oe.order_id')
                 ->where(self::setCondition($condition))
                 ->where(self::transferDataType($condition['datatype']))
-                ->order('create_time desc')
+                ->order('o.create_time desc')
                 ->paginate(
                     [
                         "page"      => $condition['page'],
@@ -146,24 +148,24 @@ final class OrderRepository
         return function ($query) use ($condition) {
 
             if (isset($condition['keyword']) && !empty($condition['keyword'])) {
-                $whereStr = 'order_no|user_id|extract.extract_name|extract.extract_phone|extract.phone|extract.name';
+                $whereStr = 'o.order_no|o.user_id|oe.extract_name|oe.extract_phone|oe.phone|oe.name';
                 $query->whereLike($whereStr, $condition['keyword'] . '%');
             }
 
             //根据订单创建时间
             if (isset($condition['start_time']) && isset($condition['end_time']) && !empty($condition['start_time']) && !empty($condition['end_time'])) {
-                $query->whereTime('create_time', strtotime($condition['start_time']), strtotime($condition['end_time']) + 86400);
+                $query->whereTime('o.create_time', strtotime($condition['start_time']), strtotime($condition['end_time']) + 86400);
             }
 
             //根据订单来源筛选
             if (isset($condition['order_source']) && !empty($condition['order_source'])) {
-                $query->where('order_source', (int)$condition['order_source']);
+                $query->where('o.order_source', (int)$condition['order_source']);
             }
 
             //根据订单来源id筛选
             if (isset($condition['source_id']) && !empty($condition['source_id'])) {
-                if (is_array($condition['source_id'])) $query->whereIn('source_id', $condition['source_id']);
-                if (is_int($condition['source_id'])) $query->where('source_id', (int)$condition['source_id']);
+                if (is_array($condition['source_id'])) $query->whereIn('o.source_id', $condition['source_id']);
+                if (is_int($condition['source_id'])) $query->where('o.source_id', (int)$condition['source_id']);
             }
 
             foreach ($condition as $k => $v) {
@@ -173,7 +175,7 @@ final class OrderRepository
                 }
                 if (in_array($k, self::$conditions)) {
                     if ((is_string($v) && !empty($v)) || is_int($v)) {
-                        $query->where($k, '=', $v);
+                        $query->where('o.' . $k, '=', $v);
                     }
                 }
             }
