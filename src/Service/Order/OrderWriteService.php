@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace YddOrder\Service\Order;
 
+use kernel\queue\factory\Settlement;
+use think\facade\Queue;
 use YddOrder\OrderField\OrderFieldConstant;
 use YddOrder\Repository\Dealer\DealerRepository;
 use YddOrder\Repository\Order\OrderRepository;
@@ -50,11 +52,15 @@ class OrderWriteService extends ServiceAbstruct
             //更改订单核销状态
             $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
             //进行结算
-            $settlement = new OrderSettlementRepository;
+            //$settlement = new OrderSettlementRepository;
             //操作成功则开始结算
-            $settlementOrder = $settlement($order, $user_id, $user_type)->handle()->upSettlementStatus()->addUserMoney()->settlementLog();
+            //$settlementOrder = $settlement($order, $user_id, $user_type)->handle()->upSettlementStatus()->addUserMoney()->settlementLog();
             //结算成功，提交事物
-            if ($write && $upOrderStatus && $settlementOrder) Db::commit();
+            if ($write && $upOrderStatus) {
+                Db::commit();
+                //进行结算(写入队列执行)
+                Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'));
+            }
 
             throw new \Exception('核销失败!');
         } catch (DbException $dbe) {

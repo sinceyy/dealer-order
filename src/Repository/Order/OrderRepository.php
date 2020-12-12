@@ -174,7 +174,11 @@ final class OrderRepository
                     continue;
                 }
                 if (in_array($k, self::$conditions)) {
-                    $query->where($k, '=', $v);
+                    if (is_string($v) && !empty($v)) {
+                        $query->where($k, '=', $v);
+                    } else if (is_int($v)) {
+                        $query->where($k, '=', $v);
+                    }
                 }
             }
         };
