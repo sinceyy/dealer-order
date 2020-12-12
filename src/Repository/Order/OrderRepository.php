@@ -145,23 +145,23 @@ final class OrderRepository
     {
         return function ($query) use ($condition) {
 
-            if ($condition['keyword'] != '') {
+            if (isset($condition['keyword']) && !empty($condition['keyword'])) {
                 $whereStr = 'order_no|user_id|extract.extract_name|extract.extract_phone|extract.phone|extract.name';
                 $query->whereLike($whereStr, $condition['keyword'] . '%');
             }
 
             //根据订单创建时间
-            if (isset($condition['start_time']) && isset($condition['end_time'])) {
+            if (isset($condition['start_time']) && isset($condition['end_time']) && !empty($condition['start_time']) && !empty($condition['end_time'])) {
                 $query->whereTime('create_time', strtotime($condition['start_time']), strtotime($condition['end_time']) + 86400);
             }
 
             //根据订单来源筛选
-            if (isset($condition['order_source'])) {
+            if (isset($condition['order_source']) && !empty($condition['order_source'])) {
                 $query->where('order_source', (int)$condition['order_source']);
             }
 
             //根据订单来源id筛选
-            if (isset($condition['source_id'])) {
+            if (isset($condition['source_id']) && !empty($condition['source_id'])) {
                 if (is_array($condition['source_id'])) $query->whereIn('source_id', $condition['source_id']);
                 if (is_int($condition['source_id'])) $query->where('source_id', (int)$condition['source_id']);
             }
@@ -172,9 +172,7 @@ final class OrderRepository
                     continue;
                 }
                 if (in_array($k, self::$conditions)) {
-                    if (is_string($v) && !empty($v)) {
-                        $query->where($k, '=', $v);
-                    } else if (is_int($v)) {
+                    if ((is_string($v) && !empty($v)) || is_int($v)) {
                         $query->where($k, '=', $v);
                     }
                 }
@@ -189,6 +187,6 @@ final class OrderRepository
      */
     private static function transferDataType($dataType): array
     {
-        return self::$orderStatus[$dataType];
+        return self::$orderStatus[$dataType] ?? [];
     }
 }
