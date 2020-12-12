@@ -165,7 +165,7 @@ final class OrderRepository
      */
     public static function getOrderInfo(array $condition)
     {
-        return Order::with(['product', 'address', 'extract'])->where(self::setCondition($condition))->find();
+        return Order::alias('o')->with(['detail','extract'])->where(self::setCondition($condition))->find();
     }
 
     /**
