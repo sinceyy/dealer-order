@@ -152,8 +152,7 @@ final class OrderRepository
 
             //根据订单创建时间
             if (isset($condition['start_time']) && isset($condition['end_time'])) {
-                $query->where('create_time', '>=', strtotime($condition['start_time']));
-                $query->where('create_time', '<=', strtotime($condition['end_time']) + 86400);
+                $query->whereTime('create_time', strtotime($condition['start_time']), strtotime($condition['end_time']) + 86400);
             }
 
             //根据订单来源筛选
@@ -169,8 +168,7 @@ final class OrderRepository
 
             foreach ($condition as $k => $v) {
                 //过滤time/source/keyword类型
-                if (strpos($k, 'time') || strpos($k, 'source') || strpos($k, 'keyword')) {
-                    unset($condition[$k]);
+                if (stristr($k, 'time') || stristr($k, 'source') || stristr($k, 'keyword')) {
                     continue;
                 }
                 if (in_array($k, self::$conditions)) {
