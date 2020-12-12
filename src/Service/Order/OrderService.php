@@ -89,7 +89,7 @@ class OrderService extends ServiceAbstruct
                 'express_id'      => (int)$params['express_id'],
                 'express_no'      => $params['express_no'],
                 'express_company' => $express->name
-            ], ['order_id' => (int)$data->id, 'user_id' => (int)$data->user_id]);
+            ], ['order_id' => (int)$data->id]);
 
             if (!$result || !$extract) {
                 throw new Exception('发货失败！');
