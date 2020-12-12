@@ -163,7 +163,7 @@ final class OrderRepository
 
             //根据订单来源id筛选
             if (isset($condition['source_id'])) {
-                if (is_array($condition['source_id'])) $query->whereIn('source_id', 'IN', $condition['source_id']);
+                if (is_array($condition['source_id'])) $query->whereIn('source_id', $condition['source_id']);
                 if (is_int($condition['source_id'])) $query->where('source_id', (int)$condition['source_id']);
             }
 
