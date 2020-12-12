@@ -60,13 +60,9 @@ class OrderService extends ServiceAbstruct
      */
     public function postDelivery(array $params, array $condition = []): bool
     {
-        $data = OrderRepository::getOrderInfo($condition);
+        $data = OrderRepository::getInfoByWhere(['id' => $condition['order_id'], 'deliver_time' => 0, 'pay_status' => OrderFieldConstant::PAY_SUCCESS]);
         if (!$data)
             throw new \InvalidArgumentException("订单信息不存在");
-
-        if ($data['pay_status'] != OrderFieldConstant::PAY_SUCCESS || $data['delivery_status'] != 0) {
-            throw new \InvalidArgumentException("订单号[{$data['order_no']}] 不满足发货条件!");
-        }
 
         //获取物流信息
         $express = Express::where(['id' => $params['express_id'], 'brand_id' => $condition['brand_id']])->find();
@@ -80,8 +76,8 @@ class OrderService extends ServiceAbstruct
 
             //更改订单状态
             $result = OrderRepository::orderUpdate([
-                'delivery_time' => time(),
-                'order_status'  => OrderFieldConstant::RECEIPT
+                'deliver_time' => time(),
+                'order_status' => OrderFieldConstant::RECEIPT
             ], ['id' => (int)$data['id']]);
 
             //增加发货记录
@@ -89,7 +85,7 @@ class OrderService extends ServiceAbstruct
                 'express_id'      => (int)$params['express_id'],
                 'express_no'      => $params['express_no'],
                 'express_company' => $express->name
-            ], ['order_id' => (int)$data->id]);
+            ], (int)$data['id']);
 
             if (!$result || !$extract) {
                 throw new Exception('发货失败！');

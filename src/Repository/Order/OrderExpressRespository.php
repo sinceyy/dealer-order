@@ -14,13 +14,13 @@ final class OrderExpressRespository
     /**
      * 记录发货信息
      * @param array $data
-     * @param array $condition
+     * @param int   $order_id
      * @return bool
      */
-    public static function sendExtract(array $data, array $condition): bool
+    public static function sendExtract(array $data, int $order_id): bool
     {
         //快递
-        $express = OrderExtract::where(['order_id' => $condition['id']])->find();
+        $express = OrderExtract::where(['order_id' => $order_id])->find();
         if ($express) {
             $express->express_id = $data['express_id'];
             $express->express_company = $data['express_company'];

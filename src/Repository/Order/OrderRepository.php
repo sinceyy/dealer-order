@@ -129,7 +129,7 @@ final class OrderRepository
      * @return array
      * @throws Exception
      */
-    public static function getOrderList(array $condition): array
+    public static function getOrderList(array $condition)
     {
         // 订单列表
         try {
@@ -145,14 +145,11 @@ final class OrderRepository
                         "page"      => $condition['page'],
                         'list_rows' => $condition['limit'],
                     ]
-                )->toArray();
+                );
         } catch (DbException $e) {
             return ['error' => $e->getMessage()];
         }
-        return [
-            'data'  => $list['data'],
-            'total' => $list['total']
-        ];
+        return $list;
     }
 
     /**
@@ -176,7 +173,7 @@ final class OrderRepository
      */
     public static function orderUpdate(array $param, array $condition = [])
     {
-        return (new Order)->where($condition)->save($condition);
+        return (new Order)->where($condition)->save($param);
     }
 
     /**
