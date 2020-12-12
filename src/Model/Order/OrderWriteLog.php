@@ -18,6 +18,4 @@ class OrderWriteLog extends Model
 
     protected $connection = 'order';
 
-    protected $autoWriteTimestamp = true;
-
 }

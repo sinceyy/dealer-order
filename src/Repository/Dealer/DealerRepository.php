@@ -51,16 +51,15 @@ class DealerRepository extends AbstractRepository
 
     /**
      * 根据id获取
-     * @param int $brand_id
      * @param int $id
      * @return array|Model|null
      * @throws DataNotFoundException
      * @throws DbException
      * @throws ModelNotFoundException
      */
-    public static function getInfoById(int $brand_id,int $id = 0)
+    public static function getInfoById(int $id = 0)
     {
-        return Dealer::with('dealerLevel')->where(['brand_id'=>$brand_id,'id' => $id])->find();
+        return Dealer::with('dealerLevel')->where(['id' => $id])->find();
     }
 
     /**

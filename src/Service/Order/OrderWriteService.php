@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace YddOrder\Service\Order;
 
 use kernel\queue\factory\Settlement;
+use think\exception\InvalidArgumentException;
 use think\facade\Queue;
 use YddOrder\OrderField\OrderFieldConstant;
 use YddOrder\Repository\Dealer\DealerRepository;
@@ -28,7 +29,7 @@ class OrderWriteService extends ServiceAbstruct
      * @return bool
      * @throws \Exception
      */
-    public function writeOff(string $code, int $user_id, int $user_type): array
+    public static function writeOff(string $code, int $user_id, int $user_type): bool
     {
         //获取订单信息
         $order = OrderRepository::getInfoByWhere(
@@ -39,38 +40,36 @@ class OrderWriteService extends ServiceAbstruct
             ]);
 
         //check 检查
-        if (!$order) return self::returnErrorData('暂未查询到此待核销订单');
+        if (!$order) throw new InvalidArgumentException('暂未查询到此待核销订单');
         //检查是否自己订单
-        $error = $this->checkOrderIsMe($order, $user_id, $user_type);
-        if (isset($error['error'])) return self::returnErrorData($error['error']);
+        $error = self::checkOrderIsMe($order, $user_id, $user_type);
+        if (isset($error['error'])) throw new InvalidArgumentException($error['error']);
 
         try {
-            //开启事物
-            Db::startTrans();
-            //记录核销记录
-            $write = OrderWriteRespository::setWriteLog($order, $user_id, $user_type);
             //更改订单核销状态
             $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
+
+            //记录核销记录
+            if($upOrderStatus) {
+                $write = OrderWriteRespository::setWriteLog($order, $user_id, $user_type);
+            }else{
+                $write = false;
+            }
             //进行结算
             //$settlement = new OrderSettlementRepository;
             //操作成功则开始结算
             //$settlementOrder = $settlement($order, $user_id, $user_type)->handle()->upSettlementStatus()->addUserMoney()->settlementLog();
             //结算成功，提交事物
             if ($write && $upOrderStatus) {
-                Db::commit();
                 //进行结算(写入队列执行)
                 Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'));
             }
-
             throw new \Exception('核销失败!');
         } catch (DbException $dbe) {
-            Db::rollback();
-            return self::returnErrorData($dbe->getMessage());
+            throw new InvalidArgumentException($dbe->getMessage());
         } catch (Exception $e) {
-            Db::rollback();
-            return self::returnErrorData($e->getMessage());
+            throw new InvalidArgumentException($e->getMessage());
         }
-        return self::returnData([]);
     }
 
     /**
@@ -82,19 +81,19 @@ class OrderWriteService extends ServiceAbstruct
      * @throws DbException
      * @throws ModelNotFoundException
      */
-    private function checkOrderIsMe($order, int $user_id, int $user_type)
+    private static function checkOrderIsMe($order, int $user_id, int $user_type)
     {
         //经销商处理订单
         if ($user_type == 1) {
             //订单所属经销商门店
-            if ($order->source_type == 1) {
+            if ($order->order_source == 1) {
                 //检查订单是否是该经销商门店订单，或是该经销商旗下门店订单
                 $info = DealerRepository::getInfoById($order->source_id);
                 if (!$info) return ['error' => '暂未查询到该待核销订单所属门店信息'];
-                if ($info->parent_dealer_id != $user_id || $order->source_id != $user_id) {
+                if ($order->source_id != $user_id && $info->parent_dealer_id != $user_id) {
                     return ['error' => '暂未查询到该待核销订单所属经销商信息'];
                 }
-            } else if ($order->source_type == 2) { //订单所属经销商下门店
+            } else if ($order->order_source == 2) { //订单所属经销商下门店
                 $storeInfo = StoreRepository::getInfoById($order->source_id);
                 if ($storeInfo->pid != $user_id) {
                     return ['error' => '暂未查询到该待核销订单所属经销商信息'];
@@ -104,8 +103,8 @@ class OrderWriteService extends ServiceAbstruct
             }
         } else if ($user_type == 2) {
             //订单所属经销商门店
-            if ($order->source_type == 1) return ['error' => '暂未查询到该待核销订单所属门店信息'];
-            if ($order->source_type == 2 && $order->source_id != $user_id) return ['error' => '暂未查询到该待核销订单所属门店信息'];
+            if ($order->order_source == 1) return ['error' => '暂未查询到该待核销订单所属门店信息'];
+            if ($order->order_source == 2 && $order->source_id != $user_id) return ['error' => '暂未查询到该待核销订单所属门店信息'];
         }
 
         return true;

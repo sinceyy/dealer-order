@@ -30,7 +30,8 @@ class OrderWriteRespository
         //快递
         $log = OrderWriteLog::where(['order_id' => $order->id])->find();
         if ($log) {
-            throw new Exception('该订单已核销，请勿重复核销');
+            $log->update_time = time();
+            $log->save();
         } else {
             $add = OrderWriteLog::create([
                 'order_id'      => (int)$order->id,
@@ -54,7 +55,7 @@ class OrderWriteRespository
     public static function upOrderWriteStatus(int $order_id): bool
     {
         //经销商给订单发货
-        $up = Order::where(['order_id' => $order_id])->save([
+        $up = Order::where(['id' => $order_id])->save([
             'order_status' => 2,
             'deliver_time' => time()
         ]);

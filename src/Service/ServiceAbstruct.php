@@ -25,6 +25,6 @@ abstract class ServiceAbstruct
      */
     public static function returnErrorData(string $msg = '', array $data = []): array
     {
-        return ['code' => 200, 'data' => $data];
+        return ['code' => 400, 'data' => $data];
     }
 }

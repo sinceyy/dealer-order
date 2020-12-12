@@ -2,7 +2,7 @@
 declare( strict_types=1 );
 
 
-namespace YddoRDER\DbUtil;
+namespace YddOrder\DbUtil;
 
 use think\db\BaseQuery;
 use think\db\Query as ThinkQuery;
