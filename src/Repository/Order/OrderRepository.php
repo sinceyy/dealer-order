@@ -103,7 +103,7 @@ final class OrderRepository
                         "page"      => $condition['page'],
                         'list_rows' => $condition['limit'],
                     ]
-                );
+                )->toArray();
         } catch (DbException $e) {
             return ['error' => $e->getMessage()];
         }
