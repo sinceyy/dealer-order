@@ -67,6 +67,6 @@ class Order extends Model
      */
     public function user(): HasOne
     {
-        return $this->hasOne(Member::class);
+        return $this->hasOne(Member::class,'id')->field('id,member_name,real_name,mobile');
     }
 }

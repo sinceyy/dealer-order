@@ -46,16 +46,54 @@ final class OrderRepository
      * settled_success 已结算（已支付，已发货，待评价，已完成）
      */
     protected static $orderStatus = [
-        'all'             => ['order_status' => ['>', 0]],
-        'pay'             => ['pay_status' => OrderFieldConstant::PAY_SUCCESS],
-        'delivery'        => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::DELIVERY, 'deliver_time' => 0, 'refund_time' => 0],
-        'receipt'         => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::RECEIPT, 'deliver_time' => ['>', 0], 'refund_time' => 0],
-        'complete'        => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::COMMENT, 'deliver_time' => ['>', 0], 'refund_time' => 0],
-        'refund'          => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::REFUND, 'deliver_time' => 0],
-        'refund_success'  => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::REFUND_SUCCESS, 'refund_time' => ['>', 0], 'deliver_time' => 0],
-        'comment'         => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => OrderFieldConstant::COMMENT],
-        'settled'         => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => ['in', [OrderFieldConstant::RECEIPT, OrderFieldConstant::REFUND]], 'deliver_time' => ['>', 0], 'is_settled' => OrderFieldConstant::SETTLED],
-        'settled_success' => ['pay_status' => OrderFieldConstant::PAY_SUCCESS, 'order_status' => ['in', [OrderFieldConstant::COMMENT, OrderFieldConstant::COMPLETE]], 'deliver_time' => ['>', 0], 'is_settled' => OrderFieldConstant::SETTLED_SUCCESS]
+        'all'            => ['order_status', '>', 0],
+        'pay'            => ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+        'delivery'       => [
+            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            ['order_status', '=', OrderFieldConstant::DELIVERY],
+            ['deliver_time', '=', 0], ['refund_time', '=', 0]
+        ],
+        'receipt'        => [
+            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            ['order_status', '=', OrderFieldConstant::RECEIPT],
+            ['deliver_time', '>', 0],
+            ['refund_time', '=', 0]
+        ],
+        'complete'       => [
+            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            ['order_status', '=', OrderFieldConstant::COMMENT],
+            ['deliver_time', '>', 0],
+            ['refund_time', '=', 0]
+        ],
+        'refund'         => [
+            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            ['order_status', '=', OrderFieldConstant::REFUND],
+            ['deliver_time', '=', 0]
+        ],
+        'refund_success' => [
+            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            ['order_status', '=', OrderFieldConstant::REFUND_SUCCESS],
+            ['refund_time', '>', 0],
+            ['deliver_time', '=', 0]
+        ],
+        'comment'        => [
+            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            ['order_status', '=', OrderFieldConstant::COMMENT]
+        ],
+        'settled'        => [
+            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            [
+                'order_status', 'in', [OrderFieldConstant::RECEIPT, OrderFieldConstant::REFUND],
+                ['deliver_time', '>', 0],
+                ['is_settled', '=', OrderFieldConstant::SETTLED]
+            ],
+            'settled_success' => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', 'in', [OrderFieldConstant::COMMENT, OrderFieldConstant::COMPLETE]],
+                ['deliver_time', '>', 0],
+                ['is_settled', '=', OrderFieldConstant::SETTLED_SUCCESS]
+            ]
+        ]
     ];
 
 
@@ -156,7 +194,7 @@ final class OrderRepository
 
             //根据订单创建时间
             if (isset($condition['start_time']) && isset($condition['end_time']) && !empty($condition['start_time']) && !empty($condition['end_time'])) {
-                $query->whereTime('o.create_time', strtotime($condition['start_time']), strtotime($condition['end_time']) + 86400);
+                $query->whereTime('o.create_time', 'between', [$condition['start_time'], $condition['end_time']]);
             }
 
             //根据订单来源筛选
@@ -191,6 +229,6 @@ final class OrderRepository
      */
     private static function transferDataType($dataType): array
     {
-        return self::$orderStatus[$dataType] ?? [];
+        return self::$orderStatus[$dataType] ? [self::$orderStatus[$dataType]] : [];
     }
 }
