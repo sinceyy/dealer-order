@@ -10,6 +10,7 @@ use YddOrder\Model\Order\Order;
 use Closure;
 use think\db\exception\DbException;
 use think\Exception;
+use YddOrder\OrderField\OrderField;
 use YddOrder\OrderField\OrderFieldConstant;
 
 final class OrderRepository
@@ -97,6 +98,7 @@ final class OrderRepository
             $list = Order::alias('o')
                 ->with(['detail', 'user'])
                 ->join('order_extract oe', 'o.id = oe.order_id')
+                ->field(OrderField::getOrderSelectField())
                 ->where(self::setCondition($condition))
                 ->where(self::transferDataType($condition['datatype']))
                 ->order('o.create_time desc')

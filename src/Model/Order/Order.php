@@ -23,6 +23,8 @@ class Order extends Model
 
     protected $autoWriteTimestamp = true;
 
+    protected $readonly = ['order_id', 'order_no'];
+
     /**
      * 订单详情列表
      * @return HasMany
