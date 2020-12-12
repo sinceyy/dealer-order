@@ -7,7 +7,6 @@ namespace YddOrder\Model\Order;
 use think\Model;
 use YddOrder\Model\Member\Member;
 use think\model\concern\SoftDelete;
-use think\model\relation\BelongsTo;
 use think\model\relation\HasMany;
 use think\model\relation\HasOne;
 
@@ -31,6 +30,15 @@ class Order extends Model
     public function detail(): HasMany
     {
         return $this->hasMany('OrderDetail');
+    }
+
+    /**
+     * 关联订单结算
+     * @return HasOne
+     */
+    public function settlement(): HasOne
+    {
+        return $this->hasOne('OrderSettlementLog');
     }
 
     /**

@@ -10,6 +10,8 @@ namespace YddOrder\OrderField;
  */
 class OrderFieldConstant
 {
+    //订单状态正常
+    const SUCCESS = 1;
     //已支付
     const PAY_SUCCESS = 1;
     //未结算

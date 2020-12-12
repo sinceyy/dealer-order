@@ -59,6 +59,32 @@ final class OrderRepository
 
 
     /**
+     * 根据订单id获取订单
+     * @param int $orderId
+     * @return array|Model|null
+     * @throws DataNotFoundException
+     * @throws DbException
+     * @throws ModelNotFoundException
+     */
+    public static function getInfoById(int $orderId)
+    {
+        return Order::where(['id' => $orderId])->find();
+    }
+
+    /**
+     * 根据条件获取订单
+     * @param array $condition
+     * @return array|Model|null
+     * @throws DataNotFoundException
+     * @throws DbException
+     * @throws ModelNotFoundException
+     */
+    public static function getInfoByWhere(array $condition)
+    {
+        return Order::where($condition)->find();
+    }
+
+    /**
      * 获取订单列表
      * @param array $condition
      * @return array
@@ -79,7 +105,7 @@ final class OrderRepository
                     ]
                 );
         } catch (DbException $e) {
-            throw new Exception($e->getMessage());
+            return ['error' => $e->getMessage()];
         }
         return [
             'data'  => $list['data'],
@@ -126,13 +152,19 @@ final class OrderRepository
 
             //根据订单创建时间
             if (isset($condition['start_time']) && isset($condition['end_time'])) {
-                $query->where(['create_time', '>=', strtotime($condition['start_time'])]);
-                $query->where(['create_time', '<=', strtotime($condition['end_time']) + 86400]);
+                $query->where('create_time', '>=', strtotime($condition['start_time']));
+                $query->where('create_time', '<=', strtotime($condition['end_time']) + 86400);
             }
 
             //根据订单来源筛选
-            if (isset($condition['order_source']) && isset($condition['source_id'])) {
-                $query->whereIn(['order_source', (int)$condition['order_source'], 'source_id' => (int)$condition['source_id']]);
+            if (isset($condition['order_source'])) {
+                $query->where('order_source', (int)$condition['order_source']);
+            }
+
+            //根据订单来源id筛选
+            if (isset($condition['source_id'])) {
+                if (is_array($condition['source_id'])) $query->whereIn('source_id', 'IN', $condition['source_id']);
+                if (is_int($condition['source_id'])) $query->where('source_id', (int)$condition['source_id']);
             }
 
             foreach ($condition as $k => $v) {
