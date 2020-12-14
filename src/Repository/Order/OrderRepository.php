@@ -134,7 +134,7 @@ final class OrderRepository
         // 订单列表
         try {
             $list = Order::alias('o')
-                ->with(['detail', 'user'])
+                ->with(['detail', 'user','clerk'])
                 ->join('order_extract oe', 'o.id = oe.order_id')
                 ->field(OrderField::getOrderSelectField())
                 ->where(self::setCondition($condition))

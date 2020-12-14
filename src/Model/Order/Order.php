@@ -6,6 +6,7 @@ namespace YddOrder\Model\Order;
 
 use think\Model;
 use think\model\relation\BelongsTo;
+use YddOrder\Model\Dealer\Dealer;
 use YddOrder\Model\Member\Member;
 use think\model\concern\SoftDelete;
 use think\model\relation\HasMany;
@@ -69,5 +70,14 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'user_id')->field('id,member_name,real_name,mobile');
+    }
+
+    /**
+     * 关联经销商
+     * @return BelongsTo
+     */
+    public function clerk(): BelongsTo
+    {
+        return $this->belongsTo(Dealer::class,'clerk_id')->field('id,dealer_name');
     }
 }
