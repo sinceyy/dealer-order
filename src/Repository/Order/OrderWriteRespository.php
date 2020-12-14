@@ -23,7 +23,8 @@ class OrderWriteRespository
      */
     public static function getWriteLogList(array $conditions = []): \think\Paginator
     {
-        return OrderWriteLog::field('id,order_id,order_price,order_no,write_user_id,write_type,create_time')
+        return OrderWriteLog::with(['detail','orderUser'])
+            ->field('id,order_id,order_price,order_no,write_user_id,write_type,create_time')
             ->where(self::setWhere($conditions))
             ->order('id desc')->paginate([
                 "page"      => $conditions['page'],
