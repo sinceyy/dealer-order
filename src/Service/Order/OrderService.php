@@ -28,7 +28,7 @@ class OrderService
      * @return array
      * @throws Exception
      */
-    public function getList(array $condition): array
+    public function getList(array $condition)
     {
         $list = OrderRepository::getOrderList($condition);
         if (isset($list['error'])) throw new InvalidArgumentException($list['error']);
@@ -43,7 +43,7 @@ class OrderService
      * @throws DbException
      * @throws ModelNotFoundException
      */
-    public function detail(array $condition): array
+    public function detail(array $condition)
     {
         return OrderRepository::getOrderInfo($condition);
     }
