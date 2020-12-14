@@ -48,13 +48,10 @@ class OrderWriteService extends ServiceAbstruct
         try {
             //更改订单核销状态
             $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
-
+            if (!$upOrderStatus) throw new InvalidArgumentException('订单信息修改失败！');
             //记录核销记录
-            if($upOrderStatus) {
-                $write = OrderWriteRespository::setWriteLog($order, $user_id, $user_type);
-            }else{
-                $write = false;
-            }
+            $write = OrderWriteRespository::setWriteLog($order, $user_id, $user_type);
+            if (!$write) throw new InvalidArgumentException('订单信息记录新增失败！');
             //进行结算
             //$settlement = new OrderSettlementRepository;
             //操作成功则开始结算
