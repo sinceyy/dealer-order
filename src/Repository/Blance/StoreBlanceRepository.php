@@ -7,6 +7,7 @@ use sunshine\repository\AbstractRepository;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
+use think\Exception;
 use think\Model;
 
 class StoreBlanceRepository extends BlanceAbstruct
@@ -24,7 +25,17 @@ class StoreBlanceRepository extends BlanceAbstruct
     {
         $model = $this->model->lock(true)->where(['data_id' => $data_id, 'data_type' => $data_type])->find();
 
-        $model->update(['blance' => sprintf('%.2f', $money)]);
+        if ($model) {
+            $up = $model->update(['blance' => sprintf('%.2f', $money)]);
+            if($up === false) throw new Exception('新增金额失败');
+        } else {
+            $ad = $this->model->insert([
+                'data_id'   => $data_id,
+                'data_type' => $data_type,
+                'blance'    => sprintf('%.2f', $money)
+            ]);
+            if($ad === false) throw new Exception('新增金额失败');
+        }
 
         return self::addBlanceLog(sprintf('%.2f', $money), 1, $data_id, $data_type, $mark);
     }

@@ -64,7 +64,7 @@ class OrderSettlementCalculation
         //计算手续费等信息
         if ($proportion > 0) {
             //结算后需要扣除的金额(后台设置为整数手续费，这里直接取千分，且毫厘四舍五入例如：0.125) 满五进一
-            $proportionPrice = sprintf("%.2f", bcmul($proportion / 1000, $order->pay_price, 3));
+            $proportionPrice = sprintf("%.2f", bcmul(sprintf("%.2f", $order->pay_price), sprintf("%.3f", $proportion / 1000),3));
             $settlementMoney = sprintf("%.2f", bcsub($order->pay_price, $proportionPrice, 2));
         } else {
             $settlementMoney = sprintf('%.2f', $order->pay_price);

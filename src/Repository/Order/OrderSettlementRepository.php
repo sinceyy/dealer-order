@@ -68,15 +68,22 @@ class OrderSettlementRepository
      */
     public function settlementLog(): bool
     {
-        //增加结算记录
-        $ad = OrderSettlementLog::create([
-            'order_id'     => $this->logData['order_id'],
-            'order_no'     => $this->logData['order_no'],
-            'price'        => $this->logData['price'],
-            'change_price' => $this->logData['change_price'],
-            'mark'         => $this->logData['mark']
-        ]);
-        return $ad === false ? false : true;
+        $order = OrderSettlementLog::where(['order_id' => $this->moneyData['order_id'], 'order_no' => $this->moneyData['order_no']])->find();
+
+        if (!$order) {
+            //增加结算记录
+            $ad = OrderSettlementLog::create([
+                'order_id'     => $this->moneyData['order_id'],
+                'order_no'     => $this->moneyData['order_no'],
+                'price'        => $this->moneyData['price'],
+                'change_price' => $this->moneyData['change_price'],
+                'mark'         => $this->moneyData['mark']
+            ]);
+
+            return $ad === false ? false : true;
+        }
+
+        return true;
     }
 
     /**
@@ -99,7 +106,8 @@ class OrderSettlementRepository
         $nowMoney = 0;
         //应打款的金额
         $user_money = sprintf("%.2f", bcadd(sprintf("%.2f", $nowMoney), sprintf("%.2f", $this->moneyData['price']), 2));
-        (new StoreBlanceRepository())->addBlance($this->user_id, $this->user_type, sprintf('%.2f', $user_money), $this->moneyData['mark']);
+        $addBlanceLog = (new StoreBlanceRepository())->addBlance($this->user_id, $this->user_type, sprintf('%.2f', $user_money), $this->moneyData['mark']);
+        if (!$addBlanceLog) throw new Exception('结算失败，增加用户金额失败！');
         return $this;
     }
 }
