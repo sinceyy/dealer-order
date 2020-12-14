@@ -14,14 +14,13 @@ use YddOrder\Model\Express\Express;
 use YddOrder\OrderField\OrderFieldConstant;
 use YddOrder\Repository\Order\OrderExpressRespository;
 use YddOrder\Repository\Order\OrderRepository;
-use YddOrder\Service\ServiceAbstruct;
 
 /**
  * 订单service
  * Class OrderService
  * @package YddOrder\Service\Order
  */
-class OrderService extends ServiceAbstruct
+class OrderService
 {
     /**
      * 订单列表
@@ -32,8 +31,8 @@ class OrderService extends ServiceAbstruct
     public function getList(array $condition): array
     {
         $list = OrderRepository::getOrderList($condition);
-        if (isset($list['error'])) return self::returnErrorData($list['error']);
-        return self::returnData($list);
+        if (isset($list['error'])) throw new InvalidArgumentException($list['error']);
+        return $list;
     }
 
     /**

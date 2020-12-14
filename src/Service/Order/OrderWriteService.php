@@ -11,14 +11,11 @@ use YddOrder\Repository\Dealer\DealerRepository;
 use YddOrder\Repository\Order\OrderRepository;
 use YddOrder\Repository\Store\StoreRepository;
 use YddOrder\Repository\Order\OrderWriteRespository;
-use YddOrder\Repository\Order\OrderSettlementRepository;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\ModelNotFoundException;
 use think\Exception;
-use think\facade\Db;
-use YddOrder\Service\ServiceAbstruct;
 
-class OrderWriteService extends ServiceAbstruct
+class OrderWriteService
 {
 
     /**
