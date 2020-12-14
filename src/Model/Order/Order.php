@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YddOrder\Model\Order;
 
 use think\Model;
+use think\model\relation\BelongsTo;
 use YddOrder\Model\Member\Member;
 use think\model\concern\SoftDelete;
 use think\model\relation\HasMany;
@@ -63,10 +64,10 @@ class Order extends Model
 
     /**
      * 关联用户表
-     * @return HasOne
+     * @return BelongsTo
      */
-    public function user(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(Member::class,'id')->field('id,member_name,real_name,mobile');
+        return $this->belongsTo(Member::class, 'user_id')->field('id,member_name,real_name,mobile');
     }
 }

@@ -67,13 +67,83 @@ class OrderWriteService extends ServiceAbstruct
         } catch (Exception $e) {
             throw new InvalidArgumentException($e->getMessage());
         }
+
+        return true;
     }
+
+    /**
+     * 订单核销（自助核销）
+     * @param array $codeArr
+     * @param int   $user_id   （经销商用户id/门店用户id）
+     * @param int   $user_type (1经销商用户2门店用户)
+     * @return bool
+     * @throws \Exception
+     */
+    public static function writeOffForSelf(array $codeArr, int $user_id, int $user_type): bool
+    {
+        $errorWrite = $orderArr = [];
+
+        //循环检查数据完整性
+        foreach ($codeArr as $k => $v) {
+            //获取订单信息
+            $order = OrderRepository::getInfoByWhere(
+                [
+                    'write_code'   => str_replace(' ', '', $v),
+                    'order_status' => OrderFieldConstant::SUCCESS,
+                    'pay_status'   => OrderFieldConstant::PAY_SUCCESS,
+                    'order_source' => $user_type
+                ]);
+
+            //check 检查
+            if (!$order) {
+                throw new InvalidArgumentException("核销码：{$v} 暂未查询到此对应待核销订单");
+            }
+            //检查是否自己订单
+            $error = self::checkOrderIsMe($order, $user_id, $user_type);
+            if (isset($error['error'])) {
+                //组装检查错误的部分数据
+                $errorWrite['checkError'][] = '订单号：' . $order->order_no . $error['error'];
+            } else {
+                $orderArr[] = $order;
+            }
+        }
+        //将检查错误的数据返回出去
+        if (count($errorWrite['checkError'])) {
+            throw new InvalidArgumentException(implode(',', $errorWrite['checkError']));
+        } else if (count($orderArr)) {
+            //处理订单核销
+            foreach ($orderArr as $order) {
+                try {
+                    //更改订单核销状态
+                    $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
+                    if (!$upOrderStatus) throw new InvalidArgumentException('订单信息修改失败，订单号：' . $order->order_no);
+                    //记录核销记录
+                    $write = OrderWriteRespository::setWriteLog($order, $user_id, $user_type);
+                    if (!$write) throw new InvalidArgumentException('订单信息记录新增失败，订单号：' . $order->order_no);
+                    //结算任务放到队列执行
+                    if ($write && $upOrderStatus) {
+                        //进行结算(写入队列执行)
+                        Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'), (string)$order->order_no);
+                    }
+                    throw new \Exception('核销失败!');
+                } catch (DbException $dbe) {
+                    throw new InvalidArgumentException('订单号：' . $order->order_no . $dbe->getMessage());
+                } catch (Exception $e) {
+                    throw new InvalidArgumentException('订单号：' . $order->order_no . $e->getMessage());
+                }
+            }
+        }
+
+        return true;
+    }
+
 
     /**
      * 检查是否所属自己或下级订单
      * @param     $order
      * @param int $user_id
      * @param int $user_type
+     * @return bool|string[]
      * @throws DataNotFoundException
      * @throws DbException
      * @throws ModelNotFoundException
