@@ -24,7 +24,7 @@ class OrderWriteService
      * @return \think\Paginator
      * @throws \think\db\exception\DbException
      */
-    public static function getWriteOderList(array $params): \think\Paginator
+    public static function getWriteOrderList(array $params): \think\Paginator
     {
         return OrderWriteRespository::getWriteLogList($params);
     }
@@ -68,6 +68,7 @@ class OrderWriteService
             if ($write && $upOrderStatus) {
                 //进行结算(写入队列执行)
                 Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'));
+                return true;
             }
             throw new \Exception('核销失败!');
         } catch (DbException $dbe) {
