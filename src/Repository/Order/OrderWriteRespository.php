@@ -16,6 +16,22 @@ class OrderWriteRespository
 {
 
     /**
+     * 获取核销记录
+     * @param array $conditions
+     * @return \think\Paginator
+     * @throws DbException
+     */
+    public static function getWriteLogList(array $conditions = []): \think\Paginator
+    {
+        return OrderWriteLog::field('id,order_id,order_price,order_no,write_user_id,write_type,create_time')
+            ->where(self::setWhere($conditions))
+            ->order('id desc')->paginate([
+                "page"      => $conditions['page'],
+                'list_rows' => $conditions['limit'],
+            ]);
+    }
+
+    /**
      * 记录核销信息
      * @param Order $order
      * @param int   $user_id
@@ -60,5 +76,18 @@ class OrderWriteRespository
             'deliver_time' => time()
         ]);
         return $up === false ? false : true;
+    }
+
+    /**
+     * 设置条件
+     * @param array $conditions
+     * @return \Closure
+     */
+    private static function setWhere(array $conditions): \Closure
+    {
+        return function ($query) use ($conditions) {
+            if ($conditions['keyword']) $query->whereLike('order_no', $conditions['keyword'] . '%');
+            if ($conditions['write_user_id']) $query->where('write_user_id', $conditions['write_user_id']);
+        };
     }
 }

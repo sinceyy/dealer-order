@@ -19,6 +19,17 @@ class OrderWriteService
 {
 
     /**
+     * 返回核销记录
+     * @param array $params
+     * @return \think\Paginator
+     * @throws \think\db\exception\DbException
+     */
+    public static function getWriteOderList(array $params): \think\Paginator
+    {
+        return OrderWriteRespository::getWriteLogList($params);
+    }
+
+    /**
      * 订单核销（核销码）
      * @param string $code
      * @param int    $user_id   （经销商用户id/门店用户id）
