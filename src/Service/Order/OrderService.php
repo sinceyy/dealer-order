@@ -51,7 +51,7 @@ class OrderService
     /**
      * 物流订单发货
      * @param array $params    [express_id,express_no,express_company,order_id,brand_id]
-     * @param array $condition [order_id,brand_id]
+     * @param array $condition [order_id,brand_id,[附加参数]]
      * @return array
      * @throws DataNotFoundException
      * @throws DbException
@@ -59,7 +59,9 @@ class OrderService
      */
     public function postDelivery(array $params, array $condition = []): bool
     {
-        $data = OrderRepository::getInfoByWhere(['id' => $condition['order_id'], 'deliver_time' => 0, 'pay_status' => OrderFieldConstant::PAY_SUCCESS]);
+        $conditions = ['id' => $condition['order_id'], 'deliver_time' => 0, 'pay_status' => OrderFieldConstant::PAY_SUCCESS];
+
+        $data = OrderRepository::getInfoByWhere(array_merge($condition, $conditions));
         if (!$data)
             throw new \InvalidArgumentException("订单信息不存在");
 
