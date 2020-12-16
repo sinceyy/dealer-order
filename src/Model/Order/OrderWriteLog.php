@@ -8,6 +8,7 @@ use think\Model;
 use think\model\concern\SoftDelete;
 use YddOrder\Model\Dealer\Dealer;
 use YddOrder\Model\Dealer\DealerSale;
+use YddOrder\Model\Store\StoreClerk;
 
 /**
  * 订单model
@@ -34,6 +35,11 @@ class OrderWriteLog extends Model
     public function orderClerkUser(): \think\model\relation\HasOne
     {
         return $this->hasOne(Dealer::class, 'id', 'write_user_id')->field('id,dealer_name as write_name ');
+    }
+
+    public function orderStoreClerkUser(): \think\model\relation\HasOne
+    {
+        return $this->hasOne(StoreClerk::class, 'id', 'write_user_id')->field('id,clerk_name as write_name ');
     }
 
     public function orderClerkSale(): \think\model\relation\HasOne
