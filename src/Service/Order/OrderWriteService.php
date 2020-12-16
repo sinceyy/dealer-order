@@ -5,6 +5,7 @@ namespace YddOrder\Service\Order;
 
 use kernel\queue\factory\Settlement;
 use think\exception\InvalidArgumentException;
+use think\facade\Db;
 use think\facade\Queue;
 use YddOrder\OrderField\OrderFieldConstant;
 use YddOrder\Repository\Dealer\DealerRepository;
@@ -53,7 +54,8 @@ class OrderWriteService
         $error = self::checkOrderIsMe($order, $user_id, $user_type);
         if (isset($error['error'])) throw new InvalidArgumentException($error['error']);
 
-        try {
+
+        Db::newQuery()->transactionXa(function () use ($user_id, $order, $user_type) {
             //更改订单核销状态
             $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
             if (!$upOrderStatus) throw new InvalidArgumentException('订单信息修改失败！');
@@ -70,12 +72,7 @@ class OrderWriteService
                 Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'));
                 return true;
             }
-            throw new \Exception('核销失败!');
-        } catch (DbException $dbe) {
-            throw new InvalidArgumentException($dbe->getMessage());
-        } catch (Exception $e) {
-            throw new InvalidArgumentException($e->getMessage());
-        }
+        }, [Db::connect('order')]);
 
         return true;
     }
@@ -120,27 +117,30 @@ class OrderWriteService
         if (count($errorWrite['checkError'])) {
             throw new InvalidArgumentException(implode(',', $errorWrite['checkError']));
         } else if (count($orderArr)) {
-            //处理订单核销
-            foreach ($orderArr as $order) {
-                try {
-                    //更改订单核销状态
-                    $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
-                    if (!$upOrderStatus) throw new InvalidArgumentException('订单信息修改失败，订单号：' . $order->order_no);
-                    //记录核销记录
-                    $write = OrderWriteRespository::setWriteLog($order, $user_id, $user_type);
-                    if (!$write) throw new InvalidArgumentException('订单信息记录新增失败，订单号：' . $order->order_no);
-                    //结算任务放到队列执行
-                    if ($write && $upOrderStatus) {
-                        //进行结算(写入队列执行)
-                        Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'), (string)$order->order_no);
+
+            Db::newQuery()->transactionXa(function () use ($user_id, $order, $user_type, $orderArr) {
+                //处理订单核销
+                foreach ($orderArr as $order) {
+                    try {
+                        //更改订单核销状态
+                        $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
+                        if (!$upOrderStatus) throw new InvalidArgumentException('订单信息修改失败，订单号：' . $order->order_no);
+                        //记录核销记录
+                        $write = OrderWriteRespository::setWriteLog($order, $user_id, $user_type);
+                        if (!$write) throw new InvalidArgumentException('订单信息记录新增失败，订单号：' . $order->order_no);
+                        //结算任务放到队列执行
+                        if ($write && $upOrderStatus) {
+                            //进行结算(写入队列执行)
+                            Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'), (string)$order->order_no);
+                        }
+                        throw new \Exception('核销失败!');
+                    } catch (DbException $dbe) {
+                        throw new InvalidArgumentException('订单号：' . $order->order_no . $dbe->getMessage());
+                    } catch (Exception $e) {
+                        throw new InvalidArgumentException('订单号：' . $order->order_no . $e->getMessage());
                     }
-                    throw new \Exception('核销失败!');
-                } catch (DbException $dbe) {
-                    throw new InvalidArgumentException('订单号：' . $order->order_no . $dbe->getMessage());
-                } catch (Exception $e) {
-                    throw new InvalidArgumentException('订单号：' . $order->order_no . $e->getMessage());
                 }
-            }
+            }, [Db::connect('order')]);
         }
 
         return true;

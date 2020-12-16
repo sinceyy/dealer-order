@@ -23,7 +23,7 @@ class OrderWriteRespository
      */
     public static function getWriteLogList(array $conditions = []): \think\Paginator
     {
-        return OrderWriteLog::with(['detail','orderUser','orderClerkUser','orderClerkSale'])
+        return OrderWriteLog::with(['detail', 'orderUser', 'orderClerkUser', 'orderClerkSale'])
             ->field('id,order_id,order_price,order_no,write_user_id,write_type,create_time')
             ->where(self::setWhere($conditions))
             ->order('id desc')->paginate([
@@ -47,8 +47,7 @@ class OrderWriteRespository
         //快递
         $log = OrderWriteLog::where(['order_id' => $order->id])->find();
         if ($log) {
-            $log->update_time = time();
-            $log->save();
+            $add = OrderWriteLog::where('order_id', $order->id)->update(['update_time' => time()]);
         } else {
             $add = OrderWriteLog::create([
                 'order_id'      => (int)$order->id,
@@ -72,7 +71,7 @@ class OrderWriteRespository
     public static function upOrderWriteStatus(int $order_id): bool
     {
         //经销商给订单发货
-        $up = Order::where(['id' => $order_id])->save([
+        $up = Order::where(['id' => $order_id])->update([
             'order_status' => 2,
             'deliver_time' => time()
         ]);
