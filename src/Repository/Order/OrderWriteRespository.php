@@ -52,6 +52,7 @@ class OrderWriteRespository
             $add = OrderWriteLog::create([
                 'order_id'      => (int)$order->id,
                 'order_no'      => (int)$order->order_no,
+                'order_price'   => $order->pay_price,
                 'write_user_id' => (int)$user_id,
                 'write_type'    => (int)$write_type
             ]);

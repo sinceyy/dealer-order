@@ -7,6 +7,7 @@ use kernel\queue\factory\Settlement;
 use think\exception\InvalidArgumentException;
 use think\facade\Db;
 use think\facade\Queue;
+use YddOrder\Model\Order\Order;
 use YddOrder\OrderField\OrderFieldConstant;
 use YddOrder\Repository\Dealer\DealerRepository;
 use YddOrder\Repository\Order\OrderRepository;
@@ -55,7 +56,7 @@ class OrderWriteService
         if (isset($error['error'])) throw new InvalidArgumentException($error['error']);
 
 
-        Db::newQuery()->transactionXa(function () use ($user_id, $order, $user_type) {
+        Order::newQuery()->transaction(function () use ($user_id, $order, $user_type) {
             //更改订单核销状态
             $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
             if (!$upOrderStatus) throw new InvalidArgumentException('订单信息修改失败！');
@@ -72,7 +73,7 @@ class OrderWriteService
                 Queue::push(Settlement::class, compact('code', 'user_id', 'user_type'));
                 return true;
             }
-        }, [Db::connect('order')]);
+        });
 
         return true;
     }
