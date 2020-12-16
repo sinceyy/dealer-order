@@ -56,7 +56,7 @@ class OrderWriteService
         if (isset($error['error'])) throw new InvalidArgumentException($error['error']);
 
 
-        Order::newQuery()->transaction(function () use ($user_id, $order, $user_type) {
+        Order::newQuery()->transaction(function () use ($user_id, $order, $user_type, $code) {
             //更改订单核销状态
             $upOrderStatus = OrderWriteRespository::upOrderWriteStatus($order->id);
             if (!$upOrderStatus) throw new InvalidArgumentException('订单信息修改失败！');
