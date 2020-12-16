@@ -59,7 +59,7 @@ class OrderService
      */
     public function postDelivery(array $params, array $condition = []): bool
     {
-        $conditions = ['id' => $condition['order_id'], 'deliver_time' => 0, 'pay_status' => OrderFieldConstant::PAY_SUCCESS];
+        $conditions = ['id' => $condition['id'], 'deliver_time' => 0, 'pay_status' => OrderFieldConstant::PAY_SUCCESS];
 
         $data = OrderRepository::getInfoByWhere(array_merge($condition, $conditions));
         if (!$data)
