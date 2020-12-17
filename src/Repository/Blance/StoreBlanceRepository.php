@@ -3,16 +3,10 @@ declare(strict_types=1);
 
 namespace YddOrder\Repository\Blance;
 
-use sunshine\repository\AbstractRepository;
-use think\db\exception\DataNotFoundException;
-use think\db\exception\DbException;
-use think\db\exception\ModelNotFoundException;
 use think\Exception;
-use think\exception\InvalidArgumentException;
-use think\Model;
 use YddOrder\Model\Blance\StoreBlanceLog;
 
-class StoreBlanceRepository extends BlanceAbstruct
+class StoreBlanceRepository implements BlanceInterface
 {
 
     /**
