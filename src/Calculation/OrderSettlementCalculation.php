@@ -31,7 +31,7 @@ class OrderSettlementCalculation
 
             try {
                 //结算比(千分单位)
-                $proportion = self::getDealerConversionRatio($user_id, $user_type);
+                $proportion = self::getDealerConversionRatio($user_id, $user_type, $order);
                 //组装备注内容
                 $proStr = $proportion['proportionPrice'] > 0 ? '订单结算，扣除订单手续费￥' . $proportion['proportionPrice'] . '元' : '手续费为：' . $proportion['proportionPrice'];
                 //组装结算记录数据
@@ -64,7 +64,7 @@ class OrderSettlementCalculation
         //计算手续费等信息
         if ($proportion > 0) {
             //结算后需要扣除的金额(后台设置为整数手续费，这里直接取千分，且毫厘四舍五入例如：0.125) 满五进一
-            $proportionPrice = sprintf("%.2f", bcmul(sprintf("%.2f", $order->pay_price), sprintf("%.3f", $proportion / 1000),3));
+            $proportionPrice = sprintf("%.2f", bcmul(sprintf("%.2f", $order->pay_price), sprintf("%.3f", $proportion / 1000), 3));
             $settlementMoney = sprintf("%.2f", bcsub($order->pay_price, $proportionPrice, 2));
         } else {
             $settlementMoney = sprintf('%.2f', $order->pay_price);
