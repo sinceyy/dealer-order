@@ -48,14 +48,14 @@ class OrderSettlementRepository
      */
     public function upSettlementStatus(): OrderSettlementRepository
     {
-        $info = (new Order)->lock(true)->find($this->order_id);
-
         //修改订单状态
-        $info->settled_time = time();
-        $info->is_settled = OrderFieldConstant::SETTLED_SUCCESS;
-        $info->order_status = OrderFieldConstant::RECEIPT;
+        $up = Order::where(['id' => $this->order->id])->update([
+            'settled_time' => time(),
+            'is_settled'   => OrderFieldConstant::SETTLED_SUCCESS,
+            'order_status' => OrderFieldConstant::RECEIPT
+        ]);
 
-        if (!$info->allowField(['settled_time', 'is_settled', 'order_status'])->save()) {
+        if (!$up) {
             throw new Exception('结算失败，订单数据更新失败！');
         }
 

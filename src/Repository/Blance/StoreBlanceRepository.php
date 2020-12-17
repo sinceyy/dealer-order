@@ -24,18 +24,18 @@ class StoreBlanceRepository extends BlanceAbstruct
      */
     public function addBlance(int $data_id, int $data_type, $money = 0.00, string $mark = '业务新增金额'): bool
     {
-        $model = $this->model->lock(true)->where(['data_id' => $data_id, 'data_type' => $data_type])->find();
+        $model = $this->model::where(['data_id' => $data_id, 'data_type' => $data_type])->find();
 
         if ($model) {
-            $up = $model->update(['blance' => sprintf('%.2f', $money)]);
-            if($up === false) throw new Exception('新增金额失败');
+            $up = $model::where(['data_id' => $data_id, 'data_type' => $data_type])->update(['blance' => sprintf('%.2f', $money)]);
+            if ($up === false) throw new Exception('新增金额失败');
         } else {
-            $ad = $this->model->insert([
+            $ad = $this->model::create([
                 'data_id'   => $data_id,
                 'data_type' => $data_type,
                 'blance'    => sprintf('%.2f', $money)
             ]);
-            if($ad === false) throw new Exception('新增金额失败');
+            if ($ad === false) throw new Exception('新增金额失败');
         }
         return self::addBlanceLog(sprintf('%.2f', $money), 1, $data_id, $data_type, $mark);
     }
@@ -50,18 +50,18 @@ class StoreBlanceRepository extends BlanceAbstruct
      */
     public function reduceBlance(int $data_id, int $data_type, float $money = 0.00, string $mark = '业务消费金额'): bool
     {
-        $model = $this->model->lock(true)->where(['data_id' => $data_id, 'data_type' => $data_type])->find();
+        $model = $this->model::where(['data_id' => $data_id, 'data_type' => $data_type])->find();
 
         if ($model) {
-            $up = $model->update(['blance' => sprintf('%.2f', $money)]);
-            if($up === false) throw new Exception('减少金额失败');
+            $up = $this->model::where(['data_id' => $data_id, 'data_type' => $data_type])->update(['blance' => sprintf('%.2f', $money)]);
+            if ($up === false) throw new Exception('减少金额失败');
         } else {
-            $ad = $this->model->insert([
+            $ad = $this->model::create([
                 'data_id'   => $data_id,
                 'data_type' => $data_type,
                 'blance'    => sprintf('%.2f', $money)
             ]);
-            if($ad === false) throw new Exception('减少金额失败');
+            if ($ad === false) throw new Exception('减少金额失败');
         }
 
         return self::addBlanceLog(sprintf('%.2f', $money), 2, $data_id, $data_type, $mark);
