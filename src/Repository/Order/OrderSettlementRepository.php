@@ -106,7 +106,7 @@ class OrderSettlementRepository
         $nowMoney = 0;
         //应打款的金额
         $user_money = sprintf("%.2f", bcadd(sprintf("%.2f", $nowMoney), sprintf("%.2f", $this->moneyData['price']), 2));
-        $addBlanceLog = (new StoreBlanceRepository())->addBlance($this->user_id, $this->user_type, sprintf('%.2f', $user_money), $this->moneyData['mark']);
+        $addBlanceLog = StoreBlanceRepository::addBlance($this->user_id, $this->user_type, sprintf('%.2f', $user_money), $this->moneyData['mark']);
         if (!$addBlanceLog) throw new Exception('结算失败，增加用户金额失败！');
         return $this;
     }

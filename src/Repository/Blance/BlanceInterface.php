@@ -14,7 +14,7 @@ interface BlanceInterface
      * @param string $mark
      * @return bool
      */
-    public function addBlance(int $data_id, int $data_type, float $money = 0.00, string $mark = '业务新增金额'): bool;
+    public static function addBlance(int $data_id, int $data_type, float $money = 0.00, string $mark = '业务新增金额'): bool;
 
 
     /**
@@ -25,7 +25,7 @@ interface BlanceInterface
      * @param string $mark
      * @return bool
      */
-    public function reduceBlance(int $data_id, int $data_type, float $money = 0.00, string $mark = '业务消费金额'): bool;
+    public static function reduceBlance(int $data_id, int $data_type, float $money = 0.00, string $mark = '业务消费金额'): bool;
 
     /**
      * 新增账户流水记录
