@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YddOrder\Model\Order;
 
+use sunshine\model\store\StoreClerk;
 use think\Model;
 use think\model\relation\BelongsTo;
 use YddOrder\Model\Dealer\Dealer;
@@ -73,11 +74,11 @@ class Order extends Model
     }
 
     /**
-     * 关联经销商
+     * 关联门店
      * @return BelongsTo
      */
     public function clerk(): BelongsTo
     {
-        return $this->belongsTo(Dealer::class,'clerk_id')->field('id,dealer_name');
+        return $this->belongsTo(StoreClerk::class,'clerk_id')->field('id,clerk_name');
     }
 }
