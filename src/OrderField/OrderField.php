@@ -18,6 +18,6 @@ class OrderField
     public static function getOrderSelectField(string $field = ''): string
     {
         if ($field) return $field;
-        return 'o.*';//oe.extract_shop_id,oe.name,oe.phone,oe.extract_name,oe.extract_phone
+        return '*';//oe.extract_shop_id,oe.name,oe.phone,oe.extract_name,oe.extract_phone
     }
 }
