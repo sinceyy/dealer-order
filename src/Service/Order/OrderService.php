@@ -36,6 +36,19 @@ class OrderService
     }
 
     /**
+     * 结算订单列表
+     * @param array $condition
+     * @return array
+     * @throws Exception
+     */
+    public function getSettledOrderList(array $condition)
+    {
+        $list = OrderRepository::getSettledOrderList($condition);
+        if (isset($list['error'])) throw new InvalidArgumentException($list['error']);
+        return $list;
+    }
+
+    /**
      * 订单详情
      * @param array $condition
      * @return array

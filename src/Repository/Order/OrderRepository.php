@@ -16,21 +16,22 @@ use YddOrder\OrderField\OrderFieldConstant;
 final class OrderRepository
 {
     //定义筛选条件字段
-    private static $conditions = [
-        'order_no', //订单号
-        'user_id',  //用户id
-        'order_source',//订单来源
-        'source_id',//来源id
-        'brand_id',//品牌商id
-        'clerk_id',//用户绑定的员工id
-        'writeoff_id',//核销人id
-        'pay_status',//支付状态
-        'pay_type',//支付类型
-        'delivery_type',//配送方式
-        'order_type',//订单类型
-        'is_settled',//结算状态
-        'order_status'//订单状态
-    ];
+    private static $conditions
+        = [
+            'order_no', //订单号
+            'user_id',  //用户id
+            'order_source',//订单来源
+            'source_id',//来源id
+            'brand_id',//品牌商id
+            'clerk_id',//用户绑定的员工id
+            'writeoff_id',//核销人id
+            'pay_status',//支付状态
+            'pay_type',//支付类型
+            'delivery_type',//配送方式
+            'order_type',//订单类型
+            'is_settled',//结算状态
+            'order_status'//订单状态
+        ];
 
     /**
      * 订单筛选条件组装
@@ -45,56 +46,55 @@ final class OrderRepository
      * settled 未结算(已支付，已发货，未结算，待收货)
      * settled_success 已结算（已支付，已发货，待评价，已完成）
      */
-    protected static $orderStatus = [
-        'all'            => ['order_status', '>', 0],
-        'pay'            => ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-        'delivery'       => [
-            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            ['order_status', '=', OrderFieldConstant::DELIVERY],
-            ['deliver_time', '=', 0], ['refund_time', '=', 0]
-        ],
-        'receipt'        => [
-            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            ['order_status', '=', OrderFieldConstant::RECEIPT],
-            ['deliver_time', '>', 0],
-            ['refund_time', '=', 0]
-        ],
-        'complete'       => [
-            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            ['order_status', '=', OrderFieldConstant::COMMENT],
-            ['deliver_time', '>', 0],
-            ['refund_time', '=', 0]
-        ],
-        'refund'         => [
-            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            ['order_status', '=', OrderFieldConstant::REFUND],
-            ['deliver_time', '=', 0]
-        ],
-        'refund_success' => [
-            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            ['order_status', '=', OrderFieldConstant::REFUND_SUCCESS],
-            ['refund_time', '>', 0],
-            ['deliver_time', '=', 0]
-        ],
-        'comment'        => [
-            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            ['order_status', '=', OrderFieldConstant::COMMENT]
-        ],
-        'settled'        => [
-            ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            [
-                'order_status', 'in', [OrderFieldConstant::RECEIPT, OrderFieldConstant::REFUND],
+    protected static $orderStatus
+        = [
+            'all'            => ['order_status', '>', 0],
+            'pay'            => ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            'delivery'       => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', '=', OrderFieldConstant::DELIVERY],
+                ['deliver_time', '=', 0], ['refund_time', '=', 0]
+            ],
+            'receipt'        => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', '=', OrderFieldConstant::RECEIPT],
+                ['deliver_time', '>', 0],
+                ['refund_time', '=', 0]
+            ],
+            'complete'       => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', '=', OrderFieldConstant::COMMENT],
+                ['deliver_time', '>', 0],
+                ['refund_time', '=', 0]
+            ],
+            'refund'         => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', '=', OrderFieldConstant::REFUND],
+                ['deliver_time', '=', 0]
+            ],
+            'refund_success' => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', '=', OrderFieldConstant::REFUND_SUCCESS],
+                ['refund_time', '>', 0],
+                ['deliver_time', '=', 0]
+            ],
+            'comment'        => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', '=', OrderFieldConstant::COMMENT]
+            ],
+            'settled'         => [
+                ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+                ['order_status', 'in', [OrderFieldConstant::RECEIPT, OrderFieldConstant::REFUND]],
                 ['deliver_time', '>', 0],
                 ['is_settled', '=', OrderFieldConstant::SETTLED]
             ],
             'settled_success' => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-                ['order_status', 'in', [OrderFieldConstant::COMMENT, OrderFieldConstant::COMPLETE]],
+                ['order_status', '>=', 1],
                 ['deliver_time', '>', 0],
                 ['is_settled', '=', OrderFieldConstant::SETTLED_SUCCESS]
             ]
-        ]
-    ];
+        ];
 
 
     /**
@@ -133,23 +133,67 @@ final class OrderRepository
     {
         // 订单列表
         try {
-            $list = Order::alias('o')
-                ->with(['detail', 'user','clerk'])
-                ->join('order_extract oe', 'o.id = oe.order_id')
+            $list = Order::with(['detail', 'user', 'clerk'])
                 ->field(OrderField::getOrderSelectField())
                 ->where(self::setCondition($condition))
                 ->where(self::transferDataType($condition['datatype']))
-                ->order('o.create_time desc')
+                ->order('create_time desc')
                 ->paginate(
                     [
                         "page"      => $condition['page'],
                         'list_rows' => $condition['limit'],
                     ]
                 );
-        } catch (DbException $e) {
+        } catch (\DbException $e) {
             return ['error' => $e->getMessage()];
         }
         return $list;
+    }
+
+    /**
+     * 获取未结算订单列表
+     * @param array $condition
+     * @return array
+     * @throws Exception
+     */
+    public static function getSettledOrderList(array $condition): array
+    {
+        $list              = self::getOrderList($condition);
+        $settledInfo = self::getOrderSettledInfo($condition['datatype'], $condition['brand_id']);
+        return compact('list','settledInfo');
+    }
+
+    /**
+     * 获取结算统计的数据
+     * @param string $type (settled未结算settled_success已结算)
+     * @param int    $brand_id
+     * @return array
+     * @throws DataNotFoundException
+     * @throws DbException
+     * @throws ModelNotFoundException
+     */
+    public static function getOrderSettledInfo(string $type, int $brand_id)
+    {
+        if ($type === 'settled') {
+            $settled = Order::where(self::transferDataType($type))
+                ->where('brand_id', '=', $brand_id)
+                ->field('id,count(id) as all_settled,sum(pay_price) as all_price')
+                ->find()
+                ->toArray();
+        } else {
+            $settled = Order::alias('o')
+                ->join('order_write_log wl', 'o.id = wl.order_id')
+                ->where(self::transferDataType($type))
+                ->where('o.brand_id', '=', $brand_id)
+                ->field('count(o.id) as all_settled,sum(o.pay_price) as all_price,sum(wl.order_price) as all_settled_price')
+                ->find()
+                ->toArray();
+        }
+        return [
+            'all_settled'       => $settled['all_settled'] ? (int)$settled['all_settled'] : 0,
+            'all_price'         => sprintf('%.2f', $settled['all_price']),
+            'all_settled_price' => isset($settled['all_settled_price']) ? sprintf('%.2f', $settled['all_settled_price']) : 0.00,
+        ];
     }
 
     /**
@@ -162,7 +206,7 @@ final class OrderRepository
      */
     public static function getOrderInfo(array $condition)
     {
-        return Order::alias('o')->with(['detail','extract'])->where(self::setCondition($condition))->find();
+        return Order::alias('o')->with(['detail', 'extract'])->where(self::setCondition($condition))->find();
     }
 
     /**
@@ -185,7 +229,7 @@ final class OrderRepository
         return function ($query) use ($condition) {
 
             if (isset($condition['keyword']) && !empty($condition['keyword'])) {
-                $whereStr = 'o.order_no|o.user_id|oe.extract_name|oe.extract_phone|oe.phone|oe.name';
+                $whereStr = 'o.order_no|o.user_id';//oe.extract_name|oe.extract_phone|oe.phone|oe.name
                 $query->whereLike($whereStr, $condition['keyword'] . '%');
             }
 
