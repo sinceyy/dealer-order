@@ -48,37 +48,37 @@ final class OrderRepository
      */
     protected static $orderStatus
         = [
-            'all'            => ['order_status', '>', 0],
-            'pay'            => ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
-            'delivery'       => [
+            'all'             => ['order_status', '>', 0],
+            'pay'             => ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
+            'delivery'        => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
                 ['order_status', '=', OrderFieldConstant::DELIVERY],
                 ['deliver_time', '=', 0], ['refund_time', '=', 0]
             ],
-            'receipt'        => [
+            'receipt'         => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
                 ['order_status', '=', OrderFieldConstant::RECEIPT],
                 ['deliver_time', '>', 0],
                 ['refund_time', '=', 0]
             ],
-            'complete'       => [
+            'complete'        => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
                 ['order_status', '=', OrderFieldConstant::COMMENT],
                 ['deliver_time', '>', 0],
                 ['refund_time', '=', 0]
             ],
-            'refund'         => [
+            'refund'          => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
                 ['order_status', '=', OrderFieldConstant::REFUND],
                 ['deliver_time', '=', 0]
             ],
-            'refund_success' => [
+            'refund_success'  => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
                 ['order_status', '=', OrderFieldConstant::REFUND_SUCCESS],
                 ['refund_time', '>', 0],
                 ['deliver_time', '=', 0]
             ],
-            'comment'        => [
+            'comment'         => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
                 ['order_status', '=', OrderFieldConstant::COMMENT]
             ],
@@ -158,9 +158,9 @@ final class OrderRepository
      */
     public static function getSettledOrderList(array $condition): array
     {
-        $list              = self::getOrderList($condition);
+        $list        = self::getOrderList($condition);
         $settledInfo = self::getOrderSettledInfo($condition['datatype'], $condition['brand_id']);
-        return compact('list','settledInfo');
+        return compact('list', 'settledInfo');
     }
 
     /**
@@ -229,24 +229,24 @@ final class OrderRepository
         return function ($query) use ($condition) {
 
             if (isset($condition['keyword']) && !empty($condition['keyword'])) {
-                $whereStr = 'o.order_no|o.user_id';//oe.extract_name|oe.extract_phone|oe.phone|oe.name
+                $whereStr = 'order_no|user_id';//oe.extract_name|oe.extract_phone|oe.phone|oe.name
                 $query->whereLike($whereStr, $condition['keyword'] . '%');
             }
 
             //根据订单创建时间
             if (isset($condition['start_time']) && isset($condition['end_time']) && !empty($condition['start_time']) && !empty($condition['end_time'])) {
-                $query->whereTime('o.create_time', 'between', [$condition['start_time'], $condition['end_time']]);
+                $query->whereTime('create_time', 'between', [$condition['start_time'], $condition['end_time']]);
             }
 
             //根据订单来源筛选
             if (isset($condition['order_source']) && !empty($condition['order_source'])) {
-                $query->where('o.order_source', (int)$condition['order_source']);
+                $query->where('order_source', (int)$condition['order_source']);
             }
 
             //根据订单来源id筛选
             if (isset($condition['source_id']) && !empty($condition['source_id'])) {
-                if (is_array($condition['source_id'])) $query->whereIn('o.source_id', $condition['source_id']);
-                if (is_int($condition['source_id'])) $query->where('o.source_id', (int)$condition['source_id']);
+                if (is_array($condition['source_id'])) $query->whereIn('source_id', $condition['source_id']);
+                if (is_int($condition['source_id'])) $query->where('source_id', (int)$condition['source_id']);
             }
 
             foreach ($condition as $k => $v) {
@@ -256,7 +256,7 @@ final class OrderRepository
                 }
                 if (in_array($k, self::$conditions)) {
                     if ((is_string($v) && !empty($v)) || is_int($v)) {
-                        $query->where('o.' . $k, '=', $v);
+                        $query->where($k, '=', $v);
                     }
                 }
             }
