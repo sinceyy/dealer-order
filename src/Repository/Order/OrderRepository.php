@@ -147,7 +147,8 @@ final class OrderRepository
         } catch (\DbException $e) {
             return ['error' => $e->getMessage()];
         }
-        return $list;
+        $settledInfo = [];
+        return compact('list', 'settledInfo');
     }
 
     /**
