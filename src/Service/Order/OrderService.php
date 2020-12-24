@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YddOrder\Service\Order;
 
+use sunshine\model\order\Order;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
@@ -85,9 +86,7 @@ class OrderService
             throw new \InvalidArgumentException("物流公司不存在!");
         }
 
-        try {
-            Db::startTrans();
-
+        \YddOrder\Model\Order\Order::newQuery()->transaction(function () use ($data, $params, $express) {
             //更改订单状态
             $result = OrderRepository::orderUpdate([
                 'deliver_time' => time(),
@@ -104,11 +103,7 @@ class OrderService
             if (!$result || !$extract) {
                 throw new Exception('发货失败！');
             }
-            Db::commit();
-        } catch (Exception $exception) {
-            Db::rollback();
-            throw new InvalidArgumentException($exception->getMessage());
-        }
+        });
         return true;
     }
 
