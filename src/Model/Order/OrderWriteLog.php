@@ -22,9 +22,9 @@ class OrderWriteLog extends Model
     protected $connection = 'order';
 
 
-    public function detail(): \think\model\relation\HasOne
+    public function detail(): \think\model\relation\hasMany
     {
-        return $this->hasOne(OrderDetail::class, 'order_id', 'order_id')->field('id,order_id,buy_num,total_pay_price,product_name,product_image,product_attr');
+        return $this->hasMany(OrderDetail::class, 'order_id', 'order_id')->field('id,order_id,buy_num,total_pay_price,product_name,product_image,product_attr');
     }
 
     public function orderUser(): \think\model\relation\HasOne
