@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace YddOrder\Repository\Blance;
 
 use think\Exception;
+use YddOrder\Model\Blance\StoreBlance;
 use YddOrder\Model\Blance\StoreBlanceLog;
 
 class StoreBlanceRepository implements BlanceInterface
@@ -15,66 +16,88 @@ class StoreBlanceRepository implements BlanceInterface
      * @param int    $change_type
      * @param int    $data_id
      * @param int    $data_type
+     * @param int    $brand_id
+     * @param int    $store_id
      * @param string $mark
      * @return bool
      */
-    public static function addBlanceLog($amount, int $change_type, int $data_id, int $data_type, string $mark = '系统备注'): bool
+    public static function addBlanceLog($amount, int $change_type, int $data_id, int $data_type, int $brand_id, int $store_id, string $mark = '系统备注'): bool
     {
-        $ad = StoreBlanceLog::create(compact('amount', 'change_type', 'data_id', 'data_type', 'mark'));
+        $ad = StoreBlanceLog::create(compact('amount', 'change_type', 'data_id', 'data_type', 'mark', 'brand_id', 'store_id'));
         return $ad ? true : false;
     }
 
     /**
      * 新增金额
-     * @param int    $data_id
-     * @param int    $data_type
+     * @param int    $clerk_id
+     * @param int    $store_id
+     * @param int    $brand_id
      * @param float  $money
      * @param string $mark
      * @return bool
+     * @throws Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
      */
-    public static function addBlance(int $data_id, int $data_type, $money = 0.00, string $mark = '业务新增金额'): bool
+    public static function addBlance(int $clerk_id, int $store_id, int $brand_id, $money = 0.00, string $mark = '业务新增金额'): bool
     {
-        $model = StoreBlance::where(['data_id' => $data_id, 'data_type' => $data_type])->find();
+        $where  = [
+            ['data_id' => $clerk_id, 'data_type' => 1, 'store_id' => $store_id, 'brand_id' => $brand_id]
+        ];
+        $blance = StoreBlance::where($where)->find();
 
-        if ($model) {
-            $up = $model::where(['data_id' => $data_id, 'data_type' => $data_type])->update(['blance' => sprintf('%.2f', $money)]);
+        if ($blance) {
+            $up = StoreBlance::update(['blance' => sprintf('%.2f', $money)], ['id' => $blance->id], 'blance');
             if ($up === false) throw new Exception('新增金额失败');
         } else {
             $ad = StoreBlance::create([
-                'data_id'   => $data_id,
-                'data_type' => $data_type,
+                'data_id'   => $clerk_id,
+                'store_id'  => $store_id,
+                'brand_id'  => $brand_id,
+                'data_type' => 1,
                 'blance'    => sprintf('%.2f', $money)
             ]);
             if ($ad === false) throw new Exception('新增金额失败');
         }
-        return self::addBlanceLog(sprintf('%.2f', $money), 1, $data_id, $data_type, $mark);
+        return self::addBlanceLog(sprintf('%.2f', $money), 1, (int)$clerk_id, 1, (int)$brand_id, (int)$store_id, $mark);
     }
 
     /**
      * 减少金额
-     * @param int    $data_id
-     * @param int    $data_type
+     * @param int    $clerk_id
+     * @param int    $store_id
+     * @param int    $brand_id
      * @param float  $money
      * @param string $mark
      * @return bool
+     * @throws Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
      */
-    public static function reduceBlance(int $data_id, int $data_type, float $money = 0.00, string $mark = '业务消费金额'): bool
+    public static function reduceBlance(int $clerk_id, int $store_id, int $brand_id, float $money = 0.00, string $mark = '业务消费金额'): bool
     {
-        $model = StoreBlance::where(['data_id' => $data_id, 'data_type' => $data_type])->find();
+        $where  = [
+            ['data_id' => $clerk_id, 'data_type' => 1, 'store_id' => $store_id, 'brand_id' => $brand_id]
+        ];
+        $blance = StoreBlance::where($where)->find();
 
-        if ($model) {
-            $up = StoreBlance::where(['data_id' => $data_id, 'data_type' => $data_type])->update(['blance' => sprintf('%.2f', $money)]);
+        if ($blance) {
+            $up = StoreBlance::update(['blance' => sprintf('%.2f', $money)], ['id' => $blance->id], 'blance');
             if ($up === false) throw new Exception('减少金额失败');
         } else {
             $ad = StoreBlance::create([
-                'data_id'   => $data_id,
-                'data_type' => $data_type,
+                'data_id'   => $clerk_id,
+                'store_id'  => $store_id,
+                'brand_id'  => $brand_id,
+                'data_type' => 1,
                 'blance'    => sprintf('%.2f', $money)
             ]);
             if ($ad === false) throw new Exception('减少金额失败');
         }
 
-        return self::addBlanceLog(sprintf('%.2f', $money), 2, $data_id, $data_type, $mark);
+        return self::addBlanceLog(sprintf('%.2f', $money), 2, (int)$clerk_id, 1, (int)$brand_id, (int)$store_id, $mark);
     }
 
 }

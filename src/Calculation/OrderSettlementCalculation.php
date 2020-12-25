@@ -21,17 +21,17 @@ class OrderSettlementCalculation
      * 结算计算
      * @param Order $order
      * @param int   $user_id
-     * @param int   $user_type
+     * @param int   $store_id
      * @return array
      * @throws Exception
      */
-    public static function orderSettlement(Order $order, int $user_id, int $user_type): array
+    public static function orderSettlement(Order $order): array
     {
         if ($order->pay_price > 0 && $order->source_id) {
 
             try {
                 //结算比(千分单位)
-                $proportion = self::getDealerConversionRatio($user_id, $user_type, $order);
+                $proportion = self::getDealerConversionRatio($order);
                 //组装备注内容
                 $proStr = $proportion['proportionPrice'] > 0 ? '订单结算，扣除订单手续费￥' . $proportion['proportionPrice'] . '元' : '手续费为：' . $proportion['proportionPrice'];
                 //组装结算记录数据
@@ -51,15 +51,13 @@ class OrderSettlementCalculation
 
     /**
      * 获取经销商对应的结算比
-     * @param int   $user_id
-     * @param int   $user_type
      * @param Order $order
      * @return array
      */
-    private static function getDealerConversionRatio(int $user_id, int $user_type, Order $order): array
+    private static function getDealerConversionRatio(Order $order): array
     {
         //获取结算比
-        $proportion = OrderSettlementRepository::getDealerConversionRatio($user_id, $user_type);
+        $proportion = OrderSettlementRepository::getDealerConversionRatio($order->brand_id);
 
         //计算手续费等信息
         if ($proportion > 0) {
