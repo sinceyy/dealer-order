@@ -23,7 +23,7 @@ class OrderWriteRespository
      */
     public static function getWriteLogList(array $conditions = []): \think\Paginator
     {
-        return OrderWriteLog::with(['detail', 'orderUser', 'orderClerkUser', 'orderClerkSale','orderStoreClerkUser'])
+        return OrderWriteLog::with(['detail', 'orderUser', 'orderClerkUser', 'orderClerkSale', 'orderStoreClerkUser'])
             ->field('id,order_id,order_price,order_no,write_user_id,write_type,create_time')
             ->where(self::setWhere($conditions))
             ->order('id desc')->paginate([
@@ -36,13 +36,13 @@ class OrderWriteRespository
      * 记录核销信息
      * @param Order $order
      * @param int   $user_id
-     * @param int   $write_type
+     * @param int   $store_id
      * @return bool
      * @throws DataNotFoundException
      * @throws DbException
      * @throws ModelNotFoundException
      */
-    public static function setWriteLog(Order $order, int $user_id, int $write_type = 2): bool
+    public static function setWriteLog(Order $order, int $user_id, int $store_id): bool
     {
         //快递
         $log = OrderWriteLog::where(['order_id' => $order->id])->find();
@@ -52,9 +52,9 @@ class OrderWriteRespository
             $add = OrderWriteLog::create([
                 'order_id'      => (int)$order->id,
                 'order_no'      => (int)$order->order_no,
-                'order_price'   => $order->pay_price,
+                'order_price'   => sprintf('%.2f', $order->pay_price),
                 'write_user_id' => (int)$user_id,
-                'write_type'    => (int)$write_type
+                'store_id'      => (int)$store_id
             ]);
         }
 
