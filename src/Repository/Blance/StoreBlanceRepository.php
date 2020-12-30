@@ -14,16 +14,15 @@ class StoreBlanceRepository implements BlanceInterface
      * 新增账户流水记录
      * @param float  $amount
      * @param int    $change_type
-     * @param int    $data_id
-     * @param int    $data_type
      * @param int    $brand_id
      * @param int    $store_id
+     * @param int    $clerk_id
      * @param string $mark
      * @return bool
      */
-    public static function addBlanceLog($amount, int $change_type, int $data_id, int $data_type, int $brand_id, int $store_id, string $mark = '系统备注'): bool
+    public static function addBlanceLog($amount, int $change_type, int $brand_id, int $store_id, int $clerk_id, string $mark = '系统备注'): bool
     {
-        $ad = StoreBlanceLog::create(compact('amount', 'change_type', 'data_id', 'data_type', 'mark', 'brand_id', 'store_id'));
+        $ad = StoreBlanceLog::create(compact('amount', 'change_type', 'mark', 'brand_id', 'store_id', 'clerk_id'));
         return $ad ? true : false;
     }
 
@@ -43,7 +42,7 @@ class StoreBlanceRepository implements BlanceInterface
     public static function addBlance(int $clerk_id, int $store_id, int $brand_id, $money = 0.00, string $mark = '业务新增金额'): bool
     {
         $where  = [
-            ['data_id' => $clerk_id, 'data_type' => 1, 'store_id' => $store_id, 'brand_id' => $brand_id]
+            ['clerk_id' => $clerk_id, 'store_id' => $store_id, 'brand_id' => $brand_id]
         ];
         $blance = StoreBlance::where($where)->find();
 
@@ -52,15 +51,14 @@ class StoreBlanceRepository implements BlanceInterface
             if ($up === false) throw new Exception('新增金额失败');
         } else {
             $ad = StoreBlance::create([
-                'data_id'   => $clerk_id,
-                'store_id'  => $store_id,
-                'brand_id'  => $brand_id,
-                'data_type' => 1,
-                'blance'    => sprintf('%.2f', $money)
+                'clerk_id' => $clerk_id,
+                'store_id' => $store_id,
+                'brand_id' => $brand_id,
+                'blance'   => sprintf('%.2f', $money)
             ]);
             if ($ad === false) throw new Exception('新增金额失败');
         }
-        return self::addBlanceLog(sprintf('%.2f', $money), 1, (int)$clerk_id, 1, (int)$brand_id, (int)$store_id, $mark);
+        return self::addBlanceLog(sprintf('%.2f', $money), 1, (int)$brand_id, (int)$store_id, (int)$clerk_id, $mark);
     }
 
     /**
@@ -79,7 +77,7 @@ class StoreBlanceRepository implements BlanceInterface
     public static function reduceBlance(int $clerk_id, int $store_id, int $brand_id, float $money = 0.00, string $mark = '业务消费金额'): bool
     {
         $where  = [
-            ['data_id' => $clerk_id, 'data_type' => 1, 'store_id' => $store_id, 'brand_id' => $brand_id]
+            ['clerk_id' => $clerk_id, 'store_id' => $store_id, 'brand_id' => $brand_id]
         ];
         $blance = StoreBlance::where($where)->find();
 
@@ -88,16 +86,15 @@ class StoreBlanceRepository implements BlanceInterface
             if ($up === false) throw new Exception('减少金额失败');
         } else {
             $ad = StoreBlance::create([
-                'data_id'   => $clerk_id,
-                'store_id'  => $store_id,
-                'brand_id'  => $brand_id,
-                'data_type' => 1,
-                'blance'    => sprintf('%.2f', $money)
+                'clerk_id' => $clerk_id,
+                'store_id' => $store_id,
+                'brand_id' => $brand_id,
+                'blance'   => sprintf('%.2f', $money)
             ]);
             if ($ad === false) throw new Exception('减少金额失败');
         }
 
-        return self::addBlanceLog(sprintf('%.2f', $money), 2, (int)$clerk_id, 1, (int)$brand_id, (int)$store_id, $mark);
+        return self::addBlanceLog(sprintf('%.2f', $money), 2, (int)$brand_id, (int)$store_id, (int)$clerk_id, $mark);
     }
 
 }

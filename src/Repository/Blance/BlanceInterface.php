@@ -32,12 +32,11 @@ interface BlanceInterface
      * 新增账户流水记录
      * @param float  $amount
      * @param int    $change_type
-     * @param int    $data_id
-     * @param int    $data_type
+     * @param int    $clerk_id
      * @param int    $brand_id
      * @param int    $store_id
      * @param string $mark
      * @return bool
      */
-    public static function addBlanceLog($amount, int $change_type, int $data_id, int $data_type, int $brand_id, int $store_id, string $mark = '系统备注'): bool;
+    public static function addBlanceLog($amount, int $change_type, int $brand_id, int $store_id, int $clerk_id, string $mark = '系统备注'): bool;
 }
