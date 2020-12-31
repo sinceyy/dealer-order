@@ -75,7 +75,7 @@ class OrderSettlementRepository
 
         if (!$order) {
             //增加结算记录
-            $ad = OrderSettlementLog::create([
+            $ad = (new OrderSettlementLog)->insert([
                 'order_id'     => $this->moneyData['order_id'],
                 'order_no'     => $this->moneyData['order_no'],
                 'price'        => $this->moneyData['price'],

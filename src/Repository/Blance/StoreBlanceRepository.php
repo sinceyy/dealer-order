@@ -22,7 +22,7 @@ class StoreBlanceRepository implements BlanceInterface
      */
     public static function addBlanceLog($amount, int $change_type, int $brand_id, int $store_id, int $clerk_id, string $mark = '系统备注'): bool
     {
-        $ad = StoreBlanceLog::create(compact('amount', 'change_type', 'mark', 'brand_id', 'store_id', 'clerk_id'));
+        $ad = (new StoreBlanceLog)->insert(compact('amount', 'change_type', 'mark', 'brand_id', 'store_id', 'clerk_id'));
         return $ad ? true : false;
     }
 
@@ -50,7 +50,7 @@ class StoreBlanceRepository implements BlanceInterface
             $up = StoreBlance::update(['blance' => sprintf('%.2f', $money)], ['id' => $blance->id], 'blance');
             if ($up === false) throw new Exception('新增金额失败');
         } else {
-            $ad = StoreBlance::create([
+            $ad = (new StoreBlance)->insert([
                 'clerk_id' => $clerk_id,
                 'store_id' => $store_id,
                 'brand_id' => $brand_id,
@@ -85,7 +85,7 @@ class StoreBlanceRepository implements BlanceInterface
             $up = StoreBlance::update(['blance' => sprintf('%.2f', $money)], ['id' => $blance->id], 'blance');
             if ($up === false) throw new Exception('减少金额失败');
         } else {
-            $ad = StoreBlance::create([
+            $ad = (new StoreBlance)->insert([
                 'clerk_id' => $clerk_id,
                 'store_id' => $store_id,
                 'brand_id' => $brand_id,
