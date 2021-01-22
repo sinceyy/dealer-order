@@ -48,7 +48,10 @@ final class OrderRepository
      */
     protected static $orderStatus
         = [
-            'all'             => ['order_status', '>', 0],
+            'all'             => [
+                ['order_status', '>', 0],
+                ['order_status', '<', 8]
+            ],
             'pay'             => ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
             'delivery'        => [
                 ['pay_status', '=', OrderFieldConstant::PAY_SUCCESS],
